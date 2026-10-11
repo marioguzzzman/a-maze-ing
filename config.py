@@ -5,6 +5,9 @@
 Open File, parse the config file and assign to variables
 """
 
+# from amaze.a_maze_ing import ConfigError
+
+
 def prepare_lines(lines: list[str]) -> list[str]:
     # Clean the lines, remove empty lines and comments
     clean_lines = []
@@ -26,6 +29,7 @@ def build_config(clean_lines: list[str]) -> dict:
 
 def clean_config(raw_config: dict) -> dict:
     cleaned_config = {}
+    # try:
     for key, value in raw_config.items():
         if key in ["WIDTH", "HEIGHT", "SEED"]:
             cleaned_config[key] = int(value)
@@ -36,6 +40,9 @@ def clean_config(raw_config: dict) -> dict:
             cleaned_config[key] = str(value)
         elif key in ["PERFECT"]:
             cleaned_config[key] = value == "True"
+    # except:
+        # raise ConfigError("Invalid value")
+
     return cleaned_config
 
 
