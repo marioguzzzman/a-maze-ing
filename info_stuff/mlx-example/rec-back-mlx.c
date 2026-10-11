@@ -169,3 +169,6 @@ cc -Wall -Wextra -Werror rec-back-mlx.c \
 
 ./mlx_test
 */
+
+
+/* MLX git repo - https://github.com/42Paris/minilibx-linux */
