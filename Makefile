@@ -1,13 +1,26 @@
-PYTHON  ?= python3
-CONFIG  ?= config.txt
-MAIN    := a_maze_ing.py
+PYTHON   ?= python3
+CONFIG   ?= config.txt
+MAIN     := a_maze_ing.py
+MLX_DIR  := .mlx_build/mlx_CLXV
+MLX_REPO := https://github.com/42school/mlx_CLXV.git
 
 .PHONY: install run debug clean lint lint-strict build
 
+# Needs these system packages already present (not installable from here,
+# since install shouldn't silently run sudo):
+#   build-essential git pkg-config libvulkan-dev vulkan-tools \
+#   mesa-vulkan-drivers libxcb1-dev libxcb-keysyms1-dev libbsd-dev zlib1g-dev
 install:
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install flake8 mypy build
 	$(PYTHON) -m pip install -e .
+	if [ -d $(MLX_DIR) ]; then \
+		cd $(MLX_DIR) && git pull; \
+	else \
+		mkdir -p $(dir $(MLX_DIR)) && git clone --depth 1 $(MLX_REPO) $(MLX_DIR); \
+	fi
+	$(MAKE) -C $(MLX_DIR)
+	$(PYTHON) -m pip install $(MLX_DIR)/mlx-*-py3-none-any.whl
 
 run:
 	$(PYTHON) $(MAIN) $(CONFIG)
