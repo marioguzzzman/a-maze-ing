@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from mlx import Mlx
-from mazegen.structure import Cell, Walls
+from mazegen.structure import Cell, Walls, create_grid, apply_42_pattern
 
 # Menu
 """
@@ -17,8 +17,13 @@ Choice? (1-4): _
 
 CELL_SIZE = 70
 BYTES_PER_PIXEL = 4
-BLACK = 0
-WHITE = 255
+# each colour is 4 bytes: blue, green, red, alpha (or similar order)
+BLACK = (0, 0, 0, 255)
+WHITE = (255, 255, 255, 255)
+PATTERN_COLOR = (0, 165, 255, 255)
+
+# flip this to False to compare the grid with the pattern hidden
+SHOW_42_PATTERN = True
 
 KEY_1 = ord("1")
 
@@ -27,24 +32,13 @@ def build_visual_maze(config_ready: dict) -> None:
     show_grid(config_ready)
 
 
-def build_grid(config_ready: dict) -> list[list[Cell]]:
-    grid = []
-    for y in range(config_ready["HEIGHT"]):
-        row = []
-        for x in range(config_ready["WIDTH"]):
-            new_cell = Cell((x, y))
-            row.append(new_cell)
-        grid.append(row)
-    return grid
-
-
-def set_pixel(pixels: memoryview, position: int, value: int) -> None:
-    # one pixel = 4 bytes in a row (blue, green, red, alpha, or similar order)
-    # using the same value for all 4 keeps it simple: 0 = black, 255 = white
-    pixels[position] = value
-    pixels[position + 1] = value
-    pixels[position + 2] = value
-    pixels[position + 3] = value
+def set_pixel(
+    pixels: memoryview, position: int, color: tuple[int, int, int, int]
+) -> None:
+    pixels[position] = color[0]
+    pixels[position + 1] = color[1]
+    pixels[position + 2] = color[2]
+    pixels[position + 3] = color[3]
 
 
 def clear_image(
@@ -72,7 +66,24 @@ def draw_vertical_wall(
         set_pixel(pixels, position, WHITE)
 
 
+def fill_cell(
+    pixels: memoryview, size_line: int, cell: Cell,
+    color: tuple[int, int, int, int],
+) -> None:
+    cell_x, cell_y = cell.position
+    left = cell_x * CELL_SIZE
+    top = cell_y * CELL_SIZE
+    for y in range(top, top + CELL_SIZE):
+        for x in range(left, left + CELL_SIZE):
+            position = y * size_line + x * BYTES_PER_PIXEL
+            set_pixel(pixels, position, color)
+
+
 def draw_cell(pixels: memoryview, size_line: int, cell: Cell) -> None:
+    if cell.cell_42:
+        fill_cell(pixels, size_line, cell, PATTERN_COLOR)
+        return
+
     cell_x, cell_y = cell.position
     left = cell_x * CELL_SIZE
     top = cell_y * CELL_SIZE
@@ -112,8 +123,10 @@ def show_grid(config_ready: dict) -> None:
 
     clear_image(pixels, size_line, window_width, window_height)
 
-    grid = build_grid(config_ready)
-    for row in grid:
+    grid = create_grid(config_ready["WIDTH"], config_ready["HEIGHT"])
+    if SHOW_42_PATTERN:
+        apply_42_pattern(grid)
+    for row in grid.cells:
         for cell in row:
             draw_cell(pixels, size_line, cell)
 
