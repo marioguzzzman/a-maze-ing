@@ -115,6 +115,11 @@ statistical uniformity, just a valid, reproducible, playable maze. Binary tree i
 tradeoff: trivial and fast, but its visible diagonal drift would fight against hiding a
 recognizable "42" pattern in the walls.
 
+
+# MLX visualizaton 
+
+https://github.com/42school/mlx_CLXV
+
 - What part of your code is reusable, and how.
 - Your team and project management with:
   - The roles of each team member.
