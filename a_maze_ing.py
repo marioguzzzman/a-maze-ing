@@ -2,6 +2,7 @@
 
 import sys
 from config import parse_config
+from mazegen.display import build_visual_maze
 
 """A-Maze-ing: entry point.
 
@@ -15,11 +16,11 @@ writes the hex output file, and runs the interactive terminal display.
 #   1. config parsing   -> validated settings and errors
 #   2. maze generation  -> mazegen/generator.py
 #   3. output file      -> hex grid + entry + exit + path
-#   4. display + menu   
+#   4. display + menu
 
 
-#config check
-def config_check() -> dict: 
+# config check
+def config_check() -> dict:
     # Check arguments
     if len(sys.argv) == 1:
         print("No arguments provided!")
@@ -43,13 +44,9 @@ def config_check() -> dict:
     return config_ready
 
 
-
-
-
-
 def main() -> None:
     config_ready = config_check()
- #   build_visual_maze(config_ready)
+    build_visual_maze(config_ready)
 
 
 if __name__ == "__main__":
