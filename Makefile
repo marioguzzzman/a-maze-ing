@@ -10,7 +10,10 @@ MLX_REPO := https://github.com/42school/mlx_CLXV.git
 # since install shouldn't silently run sudo):
 #   build-essential git pkg-config libvulkan-dev vulkan-tools \
 #   mesa-vulkan-drivers libxcb1-dev libxcb-keysyms1-dev libbsd-dev zlib1g-dev
+
 install:
+	$(PYTHON) -m venv .amazeing_env
+	. .amazeing_env/bin/activate
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install flake8 mypy build
 	$(PYTHON) -m pip install -e .
