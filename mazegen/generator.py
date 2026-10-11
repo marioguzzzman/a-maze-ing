@@ -26,3 +26,4 @@ class MazeGenerator:
     self.exit = exit
     self.seed = seed
     self.perfect = perfect
+    pass
