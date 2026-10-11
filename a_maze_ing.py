@@ -42,10 +42,23 @@ def config_check() -> dict:
     print("Config ready!")
     return config_ready
 
+# maze generation
+
+"""
+What goes in?
+width/height/entry/exit
+perfect and seed can be changed or are not default.
+what goes out? 
+list[list[int]], each int the 4-bit wall encoding.
+
+MazeGenerator(width, height, entry, exit, seed=None, perfect=False)
+"""
+
+
 
 def main() -> None:
     config_ready = config_check()
-    build_visual_maze(config_ready)
+ #   build_visual_maze(config_ready)
 
 
 if __name__ == "__main__":
