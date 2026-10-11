@@ -18,6 +18,9 @@ class Walls(IntFlag):
     # 1000 = 4th bit
     WEST = 8
 
+"""
+owns its own local state: which walls it has, and can open/close one of its own.
+"""
 
 class Cell:
     def __init__(
@@ -32,7 +35,9 @@ class Cell:
         self.visited = visited
         self.cell_42 = cell_42
 
-
+"""
+owns space: creates the cells, knows how they're arranged, handles "who's next to whom.
+"""
 class Grid:
     def __init__(
         self,
