@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import sys
+from config import parse_config
 
 """A-Maze-ing: entry point.
 
@@ -37,63 +38,6 @@ class ConfigError(MazeAppError):
     def __init__(self, message: str = "Unknown Config error") -> None:
         super().__init__(message)
 
-#Open and Parsing
-"""
-Open File, parse the config file and assign to variables
-"""
-
-def open_file() -> str:
-    # Check arguments
-    if len(sys.argv) == 1:
-        print("No arguments provided!")
-        sys.exit(1)
-    if len(sys.argv) > 2:
-        print("Too many arguments provided!")
-        sys.exit(1)
-    # Read the file and process lines
-    else:
-        try:
-            with open(sys.argv[1]) as f:
-                print(f"Reading {sys.argv[1]}...")
-                lines = f.readlines()
-                return lines
-        except FileNotFoundError as e:
-            print(f"File {sys.argv[1]} not found!: {e}")
-            sys.exit(1)
-
-
-def prepare_lines(lines: list[str]) -> list[str]:
-    # Clean the lines, remove empty lines and comments
-    clean_lines = []
-    for line in lines:
-        stripped = line.strip()
-        if stripped == "" or stripped.startswith("#"):
-            continue
-        clean_lines.append(stripped)
-    return clean_lines
-
-
-def build_config(clean_lines: list[str]) -> dict:
-    config = {}
-    for line in clean_lines:
-        key, value = line.split("=")
-        config[key] = value
-    return config
-
-
-def clean_config(config: dict) -> dict:
-    cleaned_config = {}
-    for key, value in config.items():
-        if key in ["WIDTH", "HEIGHT", "SEED"]:
-            cleaned_config[key] = int(value)
-        elif key in ["ENTRY", "EXIT"]:
-            x_str, y_str = value.split(",")
-            cleaned_config[key] = (int(x_str), int(y_str))
-        elif key in ["OUTPUT_FILE"]:
-            cleaned_config[key] = str(value)
-        elif key in ["PERFECT"]:
-            cleaned_config[key] = value == "True"
-    return cleaned_config
 
 #Menu
 """
@@ -108,9 +52,25 @@ Choice? (1-4): _
 """
 
 if __name__ == "__main__":
-    f = open_file()
-    clean_lines = prepare_lines(f)
-    config = build_config(clean_lines)
-    print(config)
-    cleam_conf = clean_config(config)
-    print(cleam_conf)
+    # Check arguments
+    if len(sys.argv) == 1:
+        print("No arguments provided!")
+        sys.exit(1)
+    if len(sys.argv) > 2:
+        print("Too many arguments provided!")
+        sys.exit(1)
+    # Read the file and process lines
+    else:
+        config_path = sys.argv[1]
+        try:
+            with open(config_path) as f:
+                print(f"Preparing config {config_path}...")
+                lines = f.readlines()
+                config_ready = parse_config(lines)
+        except FileNotFoundError as e:
+            print(f"File {sys.argv[1]} not found!: {e}")
+            sys.exit(1)
+    print(config_ready)
+    print("Config ready!")
+    
+
