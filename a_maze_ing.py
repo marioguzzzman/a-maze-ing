@@ -38,20 +38,8 @@ class ConfigError(MazeAppError):
     def __init__(self, message: str = "Unknown Config error") -> None:
         super().__init__(message)
 
-
-#Menu
-"""
-- **A graphical display using the MiniLibX (MLX) library.**
-
-=== A-Maze-ing ===
-1. Re-generate a new maze
-2. Show / Hide the shortest path
-3. Rotate the wall colours
-4. Quit
-Choice? (1-4): _
-"""
-
-if __name__ == "__main__":
+#config check
+def config_check() -> dict: 
     # Check arguments
     if len(sys.argv) == 1:
         print("No arguments provided!")
@@ -72,5 +60,12 @@ if __name__ == "__main__":
             sys.exit(1)
     print(config_ready)
     print("Config ready!")
-    
+    return config_ready
 
+
+def main() -> None:
+    config_ready = config_check()
+
+
+if __name__ == "__main__":
+    main()
