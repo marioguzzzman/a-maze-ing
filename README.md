@@ -119,6 +119,7 @@ recognizable "42" pattern in the walls.
 # MLX visualizaton 
 
 https://github.com/42school/mlx_CLXV
+Tutorial: https://aurelienbrabant.fr/blog/getting-started-with-the-minilibx
 
 - What part of your code is reusable, and how.
 - Your team and project management with:
