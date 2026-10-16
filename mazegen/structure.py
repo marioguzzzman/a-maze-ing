@@ -31,6 +31,16 @@ class Cell:
         visited: bool = False,
         cell_42: bool = False
     ):
+        """Create a Cell.
+
+        Args:
+            position: the cell's (x, y) position in the grid.
+            walls: which sides are closed; defaults to all 4 closed.
+            visited: whether a generation algorithm has visited this
+                cell yet; defaults to False.
+            cell_42: whether this cell is part of the "42" pattern;
+                defaults to False.
+        """
         self.position = position
         self.walls = walls
         self.visited = visited
@@ -46,6 +56,14 @@ class Grid:
         height: int,
         cells: list[list[Cell]] | None = None
     ):
+        """Create a Grid.
+
+        Args:
+            width: number of cells across.
+            height: number of cells down.
+            cells: the 2D collection of Cells, indexed [y][x]; defaults
+                to a fresh empty list when not given.
+        """
         self.width = width
         self.height = height
         self.cells = cells if cells is not None else []
@@ -53,7 +71,17 @@ class Grid:
     def get_neighbor(
         self, position: tuple[int, int], direction: Walls
     ) -> Cell | None:
-        """Return the neighboring Cell in `direction`, or None at the edge."""
+        """Return the neighboring Cell in a given direction.
+
+        Args:
+            position: the (x, y) position to look from.
+            direction: which side to look at (Walls.NORTH / EAST /
+                SOUTH / WEST).
+
+        Returns:
+            The Cell at that neighboring position, or None if that
+            direction falls outside the grid's bounds.
+        """
         x, y = position
         if direction == Walls.NORTH:
             neighbor_x, neighbor_y = x, y - 1
@@ -73,7 +101,15 @@ class Grid:
 
 
 def create_grid(width: int, height: int) -> Grid:
-    """Build a width x height Grid where every Cell starts fully walled."""
+    """Build a width x height Grid where every Cell starts fully walled.
+
+    Args:
+        width: number of cells across.
+        height: number of cells down.
+
+    Returns:
+        A new Grid populated with one Cell per position.
+    """
     cells = []
     for y in range(height):
         row = []
@@ -85,7 +121,16 @@ def create_grid(width: int, height: int) -> Grid:
 
 
 def create_42_pattern(grid: Grid) -> set[tuple[int, int]]:
-    """Return the (row, col) positions that spell "42", centered on grid."""
+    """Return the (row, col) positions that spell "42", centered on grid.
+
+    Args:
+        grid: the grid to center the pattern on. Only its width/height
+            are read; its cells are not touched.
+
+    Returns:
+        A set of (row, col) positions - i.e. (y, x) - that should be
+        marked as part of the "42" pattern.
+    """
     pattern = [
         [1, 0, 0, 0, 1, 1, 1],  # 1 - closed, 0 - open
         [1, 0, 0, 0, 0, 0, 1],
@@ -117,7 +162,11 @@ def create_42_pattern(grid: Grid) -> set[tuple[int, int]]:
 
 
 def apply_42_pattern(grid: Grid) -> None:
-    """Mark every "42"-pattern position's Cell with cell_42 = True."""
+    """Mark every "42"-pattern position's Cell with cell_42 = True.
+
+    Args:
+        grid: the grid to mark in place.
+    """
     blocked_cells = create_42_pattern(grid)
     for row, col in blocked_cells:
         grid.cells[row][col].cell_42 = True
