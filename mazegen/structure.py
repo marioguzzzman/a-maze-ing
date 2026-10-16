@@ -112,6 +112,42 @@ class Grid:
 
         return self.cells[neighbor_y][neighbor_x]
 
+    def open_passage(
+        self, position: tuple[int, int], direction: Walls
+    ) -> None:
+        """Open a passage between a cell and its neighbor in `direction`.
+
+        Opens the wall on both sides of the shared boundary: `direction`
+        on the cell at `position`, and the opposite direction on its
+        neighbor, so the two stay coherent with each other.
+
+        Args:
+            position: the (x, y) position of the cell to open from.
+            direction: which side to open (Walls.NORTH / EAST / SOUTH
+                / WEST).
+
+        Raises:
+            ValueError: if `direction` points outside the grid's
+                bounds (no neighbor exists there). A correctly
+                written generator should never trigger this - it's a
+                guard against a bug upstream, not a user-facing error.
+        """
+        neighbor = self.get_neighbor(position, direction)
+        if neighbor is None:
+            raise ValueError("Can't open a wall in that position")
+        else:
+            current_cell = self.cells[position[1]][position[0]]
+            current_cell.open_wall(direction)
+            if direction == Walls.NORTH:
+                opposite_direction = Walls.SOUTH
+            elif direction == Walls.WEST:
+                opposite_direction = Walls.EAST
+            elif direction == Walls.SOUTH:
+                opposite_direction = Walls.NORTH
+            else:
+                opposite_direction = Walls.WEST
+            neighbor.open_wall(opposite_direction)
+
 
 def create_grid(width: int, height: int) -> Grid:
     """Build a width x height Grid where every Cell starts fully walled.
