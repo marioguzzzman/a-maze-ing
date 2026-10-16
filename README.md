@@ -19,6 +19,14 @@
 
 ## Maze generation algorithm
 
+> **Status (2026-10-16): this section is the design, not yet the running code.** The
+> mechanics it depends on — `Cell`, `Grid`, wall-opening, the "42" pattern, the full
+> config → generate → display pipeline — are built and tested (see `HANDOFF.md`). The actual
+> carving logic running today is a random placeholder (`MazeGenerator.random_open_walls`) used
+> to prove the mechanism works; it does not implement the backtracker described below yet, and
+> has no connectivity, corridor-width, or `PERFECT` logic. Swapping it for the real algorithm
+> below is the next big step.
+
 ### Cells, graphs, and a tree hiding in the subject
 
 Strip away the walls-and-corridors picture for a second and the maze is a **graph**: every
