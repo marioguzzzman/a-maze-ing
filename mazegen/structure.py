@@ -1,14 +1,16 @@
-"""
-grid 
-witdh and heigth
-cells
+"""Maze data structures: Walls, Cell, and Grid.
 
-exception: boundaries
+A Grid owns space: it holds every Cell and knows how they're arranged
+(bounds, who's next to whom). A Cell owns only its own local state:
+its position, and which of its own walls are open or closed.
 """
 
 from enum import IntFlag
 
+
 class Walls(IntFlag):
+    """Which sides of a cell have a wall, as a 4-bit flag."""
+
     # 0001 = 1st bit
     NORTH = 1
     # 0010 = 2nd bit
@@ -18,11 +20,10 @@ class Walls(IntFlag):
     # 1000 = 4th bit
     WEST = 8
 
-"""
-owns its own local state: which walls it has, and can open/close one of its own.
-"""
 
 class Cell:
+    """Owns its own local state: which walls it has, position, flags."""
+
     def __init__(
         self,
         position: tuple[int, int],
@@ -35,23 +36,24 @@ class Cell:
         self.visited = visited
         self.cell_42 = cell_42
 
-"""
-owns space: creates the cells, knows how they're arranged, handles "who's next to whom.
-"""
+
 class Grid:
+    """Owns space: creates the cells, knows who's next to whom."""
+
     def __init__(
         self,
         width: int,
         height: int,
-        cells: list[list[Cell]] = []
+        cells: list[list[Cell]] | None = None
     ):
         self.width = width
         self.height = height
-        self.cells = cells
+        self.cells = cells if cells is not None else []
 
     def get_neighbor(
         self, position: tuple[int, int], direction: Walls
     ) -> Cell | None:
+        """Return the neighboring Cell in `direction`, or None at the edge."""
         x, y = position
         if direction == Walls.NORTH:
             neighbor_x, neighbor_y = x, y - 1
@@ -71,6 +73,7 @@ class Grid:
 
 
 def create_grid(width: int, height: int) -> Grid:
+    """Build a width x height Grid where every Cell starts fully walled."""
     cells = []
     for y in range(height):
         row = []
@@ -82,8 +85,9 @@ def create_grid(width: int, height: int) -> Grid:
 
 
 def create_42_pattern(grid: Grid) -> set[tuple[int, int]]:
+    """Return the (row, col) positions that spell "42", centered on grid."""
     pattern = [
-        [1, 0, 0, 0, 1, 1, 1], # 1 - closed, 0 - open
+        [1, 0, 0, 0, 1, 1, 1],  # 1 - closed, 0 - open
         [1, 0, 0, 0, 0, 0, 1],
         [1, 1, 1, 0, 1, 1, 1],
         [0, 0, 1, 0, 1, 0, 0],
@@ -106,15 +110,14 @@ def create_42_pattern(grid: Grid) -> set[tuple[int, int]]:
                 grid_col = starting_col + col
                 blocked_cells.add((grid_row, grid_col))
 
-    # check to not draw it if the whole grid is too small
-    #if the with is smaller than 9 and heigth is smaller than 7 then dont do the pattern
-    # print and error that the grid is too small
+    # TODO: if the grid is too small for this pattern (width < 9 or
+    # height < 7), skip it and print an error instead of returning
+    # positions that may fall outside the grid.
     return blocked_cells
 
 
 def apply_42_pattern(grid: Grid) -> None:
+    """Mark every "42"-pattern position's Cell with cell_42 = True."""
     blocked_cells = create_42_pattern(grid)
     for row, col in blocked_cells:
         grid.cells[row][col].cell_42 = True
-
-
