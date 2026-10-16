@@ -2,6 +2,7 @@
 
 import sys
 from config import parse_config
+from mazegen.generator import MazeGenerator
 from mazegen.display import build_visual_maze
 
 """A-Maze-ing: entry point.
@@ -46,7 +47,15 @@ def config_check() -> dict:
 
 def main() -> None:
     config_ready = config_check()
-    build_visual_maze(config_ready)
+    generator = MazeGenerator(
+        config_ready["WIDTH"],
+        config_ready["HEIGHT"],
+        config_ready["ENTRY"],
+        config_ready["EXIT"],
+        config_ready["SEED"],
+        config_ready["PERFECT"],)
+    grid = generator.generate_maze()
+    build_visual_maze(grid)
 
 
 if __name__ == "__main__":

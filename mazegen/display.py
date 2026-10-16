@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from mlx import Mlx
-from mazegen.structure import Cell, Walls, create_grid, apply_42_pattern
+from mazegen.structure import Cell, Grid, Walls, create_grid, apply_42_pattern
 
 # Menu
 """
@@ -22,14 +22,11 @@ BLACK = (0, 0, 0, 255)
 WHITE = (255, 255, 255, 255)
 PATTERN_COLOR = (0, 165, 255, 255)
 
-# flip this to False to compare the grid with the pattern hidden
-SHOW_42_PATTERN = True
-
 KEY_1 = ord("1")
 
 
-def build_visual_maze(config_ready: dict) -> None:
-    show_grid(config_ready)
+def build_visual_maze(grid: Grid) -> None:
+    show_grid(grid)
 
 
 def set_pixel(
@@ -100,12 +97,12 @@ def draw_cell(pixels: memoryview, size_line: int, cell: Cell) -> None:
         draw_vertical_wall(pixels, size_line, right, top, bottom)
 
 
-def show_grid(config_ready: dict) -> None:
+def show_grid(grid: Grid) -> None:
     mlx_library = Mlx()
     mlx_connection = mlx_library.mlx_init()
 
-    window_width = config_ready["WIDTH"] * CELL_SIZE
-    window_height = config_ready["HEIGHT"] * CELL_SIZE
+    window_width = grid.width * CELL_SIZE
+    window_height = grid.height * CELL_SIZE
     window = mlx_library.mlx_new_window(
         mlx_connection, window_width, window_height, "maze"
     )
@@ -123,9 +120,6 @@ def show_grid(config_ready: dict) -> None:
 
     clear_image(pixels, size_line, window_width, window_height)
 
-    grid = create_grid(config_ready["WIDTH"], config_ready["HEIGHT"])
-    if SHOW_42_PATTERN:
-        apply_42_pattern(grid)
     for row in grid.cells:
         for cell in row:
             draw_cell(pixels, size_line, cell)
@@ -144,9 +138,11 @@ def show_grid(config_ready: dict) -> None:
 
 
 def main() -> None:
-    # standalone test values, used only when running this file directly
-    test_config = {"WIDTH": 10, "HEIGHT": 8}
-    show_grid(test_config)
+    # standalone test grid, used only when running this file directly -
+    # the real pipeline builds this via MazeGenerator instead
+    test_grid = create_grid(10, 8)
+    apply_42_pattern(test_grid)
+    show_grid(test_grid)
 
 
 if __name__ == "__main__":
