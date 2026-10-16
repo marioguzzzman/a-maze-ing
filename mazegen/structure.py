@@ -46,6 +46,19 @@ class Cell:
         self.visited = visited
         self.cell_42 = cell_42
 
+    def open_wall(self, direction: Walls) -> None:
+        """Open one of this cell's own walls.
+
+        Args:
+            direction: which wall to open (Walls.NORTH / EAST /
+                SOUTH / WEST). Safe to call even if it's already open.
+        """
+        # ~direction = every wall except this one. & keeps only the
+        # bits set in both self.walls and that complement, so this one
+        # bit gets forced to 0 and every other bit is left untouched -
+        # safe to call even if direction was already open.
+        self.walls = self.walls & (~direction)
+
 
 class Grid:
     """Owns space: creates the cells, knows who's next to whom."""
