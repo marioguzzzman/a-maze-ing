@@ -10,6 +10,11 @@ from mazegen.output_maze import write_hex_to_file
 CELL_SIZE = 60
 BYTES_PER_PIXEL = 4
 PATH_LINE_WIDTH = 10
+# mlx_string_put's (x, y) is a glyph's top-left corner, not its center -
+# these are the font's fixed glyph box size, straight from mlx_font.c /
+# mlx_string_put.c (1140 / 95 chars - 2 = 10 wide, 20 tall).
+LABEL_GLYPH_WIDTH = 10
+LABEL_GLYPH_HEIGHT = 20
 
 PUMPKIN = {
     "background": (14, 6, 6, 255),
@@ -45,6 +50,17 @@ KEY_4 = ord("4")
 
 def build_visual_maze(generator: MazeGenerator) -> None:
     show_grid(generator)
+
+
+def packed_color(color: tuple[int, int, int, int]) -> int:
+    """Pack a (B, G, R, A) tuple into the single int mlx_string_put wants.
+
+    mlx_string_put's text goes through the same B8G8R8A8 image path as
+    every other colour in this file - just as one 32-bit int instead of
+    4 separate memoryview bytes.
+    """
+    blue, green, red, alpha = color
+    return (alpha << 24) | (red << 16) | (green << 8) | blue
 
 
 def set_pixel(
@@ -235,7 +251,20 @@ def show_grid(generator: MazeGenerator) -> None:
                 draw_cell(pixels, size_line, cell, current_palette)
 
         mlx_library.mlx_put_image_to_window(
-            mlx_connection, window,  image, 0, 0
+            mlx_connection, window, image, 0, 0
+        )
+        label_color = packed_color(current_palette["background"])
+        mlx_library.mlx_string_put(
+            mlx_connection, window,
+            entry_x * CELL_SIZE + CELL_SIZE // 2 - LABEL_GLYPH_WIDTH // 2,
+            entry_y * CELL_SIZE + CELL_SIZE // 2 - LABEL_GLYPH_HEIGHT // 2,
+            label_color, "A",
+        )
+        mlx_library.mlx_string_put(
+            mlx_connection, window,
+            exit_x * CELL_SIZE + CELL_SIZE // 2 - LABEL_GLYPH_WIDTH // 2,
+            exit_y * CELL_SIZE + CELL_SIZE // 2 - LABEL_GLYPH_HEIGHT // 2,
+            label_color, "B",
         )
 
     redraw(grid, palette_selected, path, show_path)
