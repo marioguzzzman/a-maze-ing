@@ -14,6 +14,15 @@ REQUIRED_KEYS = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
 
 
 def prepare_lines(lines: list[str]) -> list[str]:
+    """Strip blank lines and '#' comments from the raw file lines.
+
+    Args:
+        lines: the raw lines read from the config file.
+
+    Returns:
+        Only the lines holding an actual KEY=VALUE pair, stripped of
+        leading/trailing whitespace.
+    """
     # Clean the lines, remove empty lines and comments
     clean_lines = []
     for line in lines:
@@ -25,6 +34,15 @@ def prepare_lines(lines: list[str]) -> list[str]:
 
 
 def build_config(clean_lines: list[str]) -> dict[str, str]:
+    """Split each 'KEY=VALUE' line into a plain string dict.
+
+    Args:
+        clean_lines: lines already stripped of comments/blanks, each
+            expected to contain exactly one '='.
+
+    Returns:
+        A dict mapping each key to its raw, still-unconverted value.
+    """
     raw_config: dict[str, str] = {}
     for line in clean_lines:
         key, value = line.split("=")
@@ -33,6 +51,17 @@ def build_config(clean_lines: list[str]) -> dict[str, str]:
 
 
 def clean_config(raw_config: dict[str, str]) -> Config:
+    """Convert each raw string value to its real type.
+
+    WIDTH/HEIGHT/SEED become int, ENTRY/EXIT become an (int, int)
+    tuple, OUTPUT_FILE stays a str, PERFECT becomes a bool.
+
+    Args:
+        raw_config: the dict build_config() produced.
+
+    Returns:
+        The same keys, with values converted to their real types.
+    """
     cleaned_config: Config = {}
     for key, value in raw_config.items():
         if key in ["WIDTH", "HEIGHT", "SEED"]:
@@ -91,6 +120,18 @@ def validate_config(config: Config) -> None:
 
 
 def parse_config(lines: list[str]) -> Config:
+    """Run the full config pipeline: parse, convert, and validate.
+
+    Args:
+        lines: the raw lines read from the config file.
+
+    Returns:
+        The parsed, type-converted, validated config dict.
+
+    Raises:
+        ConfigError: on bad syntax, a missing required key, or a
+            value that doesn't make sense (see validate_config).
+    """
     clean_lines = prepare_lines(lines)
     try:
         raw_config = build_config(clean_lines)

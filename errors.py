@@ -17,10 +17,33 @@ The "42" pattern may be omitted in case the maze size does not allow it
 
 
 class MazeAppError(Exception):
+    """Base class for this project's graceful, user-facing errors.
+
+    Distinct from a plain ValueError, which this project reserves for
+    internal programmer-bug tripwires (e.g. Grid.open_passage) rather
+    than expected, user-facing problems.
+    """
+
     def __init__(self, message: str = "Unknown Maze error") -> None:
+        """Create a MazeAppError.
+
+        Args:
+            message: the error message shown to the user.
+        """
         super().__init__(message)
 
 
 class ConfigError(MazeAppError):
+    """Raised for a problem with the config file.
+
+    Covers bad syntax, a missing required key, or a value that
+    doesn't make sense (e.g. ENTRY outside the maze bounds).
+    """
+
     def __init__(self, message: str = "Unknown Config error") -> None:
+        """Create a ConfigError.
+
+        Args:
+            message: the error message shown to the user.
+        """
         super().__init__(message)

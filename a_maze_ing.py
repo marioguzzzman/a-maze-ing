@@ -1,12 +1,4 @@
 #! /usr/bin/env python3
-
-import sys
-from typing import cast
-from config import Config, parse_config
-from errors import ConfigError
-from mazegen.generator import MazeGenerator
-from mazegen.display import build_visual_maze
-
 """A-Maze-ing: entry point.
 
 Usage: python3 a_maze_ing.py config.txt
@@ -14,6 +6,13 @@ Usage: python3 a_maze_ing.py config.txt
 Reads the configuration file, asks ``mazegen.MazeGenerator`` for a maze,
 writes the hex output file, and runs the interactive terminal display.
 """
+
+import sys
+from typing import cast
+from config import Config, parse_config
+from errors import ConfigError
+from mazegen.generator import MazeGenerator
+from mazegen.display import build_visual_maze
 
 # Notes on building:
 #   1. config parsing   -> validated settings and errors
@@ -24,6 +23,15 @@ writes the hex output file, and runs the interactive terminal display.
 
 # config check
 def config_check() -> Config:
+    """Validate CLI args, then parse and validate the config file.
+
+    Reads the config path from sys.argv. A missing/extra argument, a
+    missing file, or an invalid config each print a clear message and
+    exit(1) rather than raising out of this function.
+
+    Returns:
+        The parsed, validated config dict.
+    """
     # Check arguments
     if len(sys.argv) == 1:
         print("No arguments provided!")
@@ -49,6 +57,7 @@ def config_check() -> Config:
 
 
 def main() -> None:
+    """Parse the config, generate a maze, and display it."""
     config_ready = config_check()
     generator = MazeGenerator(
         cast(int, config_ready["WIDTH"]),

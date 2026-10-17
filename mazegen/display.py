@@ -1,4 +1,11 @@
 #! /usr/bin/env python3
+"""Draw a Grid with MLX and run the interactive menu.
+
+Shows walls, the "42" pattern, entry/exit labels, and the solution
+path, with 1/2/3/4 bound to regenerate/show-path/rotate-colours/quit.
+
+This module only draws an already-built Grid.
+"""
 
 from mlx import Mlx
 import random
@@ -49,6 +56,7 @@ KEY_4 = ord("4")
 
 
 def build_visual_maze(generator: MazeGenerator) -> None:
+    """Entry point from a_maze_ing.py: generate and show a maze."""
     show_grid(generator)
 
 
@@ -66,6 +74,9 @@ def packed_color(color: tuple[int, int, int, int]) -> int:
 def set_pixel(
     pixels: memoryview, position: int, color: tuple[int, int, int, int]
 ) -> None:
+    """Write one (B, G, R, A) pixel at a byte offset in the buffer."""
+    # Indexing into a memoryview writes straight into the underlying
+    # bytes - no new object gets created, no copy happens.
     pixels[position] = color[0]
     pixels[position + 1] = color[1]
     pixels[position + 2] = color[2]
@@ -76,6 +87,7 @@ def clear_image(
     pixels: memoryview, size_line: int, width: int, height: int,
     background_color: tuple[int, int, int, int],
 ) -> None:
+    """Fill the whole image buffer with one background colour."""
     for y in range(height):
         for x in range(width):
             position = y * size_line + x * BYTES_PER_PIXEL
@@ -86,6 +98,7 @@ def draw_horizontal_wall(
     pixels: memoryview, size_line: int, y: int, x_start: int, x_end: int,
     wall_color: tuple[int, int, int, int],
 ) -> None:
+    """Draw a 1-pixel-tall horizontal line from x_start to x_end at row y."""
     for x in range(x_start, x_end + 1):
         position = y * size_line + x * BYTES_PER_PIXEL
         set_pixel(pixels, position, wall_color)
@@ -95,6 +108,7 @@ def draw_vertical_wall(
     pixels: memoryview, size_line: int, x: int, y_start: int, y_end: int,
     wall_color: tuple[int, int, int, int],
 ) -> None:
+    """Draw a 1-pixel-wide vertical line from y_start to y_end at column x."""
     for y in range(y_start, y_end + 1):
         position = y * size_line + x * BYTES_PER_PIXEL
         set_pixel(pixels, position, wall_color)
@@ -104,6 +118,7 @@ def fill_cell(
     pixels: memoryview, size_line: int, cell: Cell,
     color: tuple[int, int, int, int],
 ) -> None:
+    """Fill a cell's whole CELL_SIZE x CELL_SIZE square with one colour."""
     cell_x, cell_y = cell.position
     left = cell_x * CELL_SIZE
     top = cell_y * CELL_SIZE
@@ -114,6 +129,14 @@ def fill_cell(
 
 
 def cell_center(position: tuple[int, int]) -> tuple[int, int]:
+    """Return a grid position's center point in pixel coordinates.
+
+    Args:
+        position: a cell's (x, y) grid position.
+
+    Returns:
+        The (x, y) pixel coordinates of that cell's center.
+    """
     x, y = position
     center_x = x * CELL_SIZE + CELL_SIZE // 2
     center_y = y * CELL_SIZE + CELL_SIZE // 2
@@ -125,6 +148,19 @@ def draw_path_line(
     start: tuple[int, int], end: tuple[int, int],
     color: tuple[int, int, int, int],
 ) -> None:
+    """Draw a PATH_LINE_WIDTH-thick line between two pixel points.
+
+    `start` and `end` must share either their x or their y coordinate
+    (a straight horizontal or vertical segment) - always true for two
+    consecutive cells in a solved path.
+
+    Args:
+        pixels: the image buffer to draw into.
+        size_line: bytes per row of the buffer.
+        start: the pixel coordinates to start from.
+        end: the pixel coordinates to end at.
+        color: the line's colour.
+    """
     start_x, start_y = start
     end_x, end_y = end
     half_width = PATH_LINE_WIDTH // 2
@@ -142,6 +178,15 @@ def draw_cell(
     pixels: memoryview, size_line: int, cell: Cell,
     palette: dict[str, tuple[int, int, int, int]],
 ) -> None:
+    """Draw one cell: a solid fill if it's "42"-pattern, else an
+    outline of whichever of its walls are closed.
+
+    Args:
+        pixels: the image buffer to draw into.
+        size_line: bytes per row of the buffer.
+        cell: the cell to draw.
+        palette: the active colour palette (see PUMPKIN/SODA/etc.).
+    """
     if cell.cell_42:
         fill_cell(pixels, size_line, cell, palette["pattern"])
         return
@@ -166,6 +211,15 @@ def draw_cell(
 
 
 def show_grid(generator: MazeGenerator) -> None:
+    """Generate a maze, open an MLX window, and run the interactive menu.
+
+    Builds the first maze and solution, writes the output file, then
+    blocks in mlx_loop handling key presses: 1 regenerates, 2 toggles
+    the path, 3 rotates the colour palette, 4 quits.
+
+    Args:
+        generator: the MazeGenerator to draw (and re-generate from).
+    """
     grid = generator.generate_maze()
     path_letters = generator.solve()
     hex_maze = generator.maze_to_hex()
@@ -193,6 +247,8 @@ def show_grid(generator: MazeGenerator) -> None:
         entry_point: tuple[int, int],
         grid: Grid,
     ) -> list[tuple[int, int]]:
+        """Walk path_letters from entry_point to rebuild the full
+        list of grid positions the solved path passes through."""
         positions = [entry_point]
         current_position = entry_point
         direction_from_letter = {}
@@ -219,6 +275,11 @@ def show_grid(generator: MazeGenerator) -> None:
     # mlx_get_data_addr gives back 4 values at once: the writable pixel
     # buffer, plus 3 numbers describing it. We only need the first and
     # third here, but we still have to catch all 4 on the left-hand side.
+    #
+    # `pixels` is a memoryview: a thin, direct window onto the image's
+    # actual raw bytes in memory, not a copy of them. Writing into it
+    # (pixels[i] = ...) edits the image itself in place - that's what
+    # lets us redraw a whole frame without copying anything around.
     pixels, bits_per_pixel, size_line, image_format = (
         mlx_library.mlx_get_data_addr(image)
     )
@@ -229,6 +290,8 @@ def show_grid(generator: MazeGenerator) -> None:
         path_to_show: list[tuple[int, int]],
         show_path: bool
     ) -> None:
+        """Render one full frame - path, entry/exit, walls, labels -
+        and blit it to the window."""
         clear_image(
             pixels, size_line, window_width, window_height,
             current_palette["background"],
@@ -271,6 +334,7 @@ def show_grid(generator: MazeGenerator) -> None:
     menu_actions()
 
     def on_key_press(key_code: int, extra_data: object) -> int:
+        """MLX key hook: dispatch 1/2/3/4 to regenerate/path/colour/quit."""
         nonlocal grid
         nonlocal palette_index
         nonlocal palette_selected
@@ -309,6 +373,7 @@ def show_grid(generator: MazeGenerator) -> None:
 
 
 def menu_actions() -> None:
+    """Print the terminal menu legend."""
     print("=== A-Maze-ing ===")
     print("1. Re-generate a new maze")
     print("2. Show / Hide the shortest path")
@@ -334,8 +399,8 @@ def color_chooser(
 
 
 def main() -> None:
-    # standalone test, used only when running this file directly -
-    # the real pipeline builds this via a_maze_ing.py instead
+    """Standalone test entry point - run this file directly to see a
+    test maze, independent of the real a_maze_ing.py pipeline."""
     test_generator = MazeGenerator(10, 8, (0, 0), (9, 7), 42)
     show_grid(test_generator)
 
