@@ -59,7 +59,14 @@ class MazeGenerator:
     def generate_maze(self) -> Grid:
         self.grid = create_grid(self.width, self.height)
         apply_42_pattern(self.grid)
+        self.check_cell("ENTRY", self.entry_point)
+        self.check_cell("EXIT", self.entry_point)
+        if self.entry_point == self.exit_point:
+            raise ValueError("ENTRY and EXIT must be different cells!")
+
         self.build_maze()
+        # TODO: ADD LOPPS
+        # TODO: REMOVE DEAD ENDS
         return self.grid
 
     def random_open_walls(self) -> None:
@@ -138,6 +145,109 @@ class MazeGenerator:
                 neighbor.visited = True
                 stack.append(neighbor)
 
+
+    # PERFECT = False
+    def block_is_open(self, left: int, top: int) -> bool:
+        """Check if a 3x3 block has no walls inside it.
+        left: x of the top-left cell of the block.
+        top: y of the top-left cell of the block."""
+
+        if left < 0 or top < 0:  # no negative coordinates
+            return False
+        if left + 2 >= self.width or top + 2 >= self.height:
+            return False
+
+        for y in range(top, top + 3): # 3 cells
+            for x in range(left, left + 3):
+                cell = self.grid.cells[y][x]
+                # Only look at the east and south wall of each cell, so
+                # every wall inside the block is checked exactly once
+                if x < left + 2 and cell.walls & Walls.EAST: # check for wall on E
+                    return False
+                if y < top + 2 and cell.walls & Walls.SOUTH: # check for wall on S
+                    return False
+        return True
+
+
+    def makes_3x3(self, cell: Cell) -> bool:
+        """Check if a cell is part of a 3x3 with no wall inside"""
+        x, y = cell.position
+        for top in range(y - 2, y + 1):
+            for left in range(x - 2, x + 1):
+                if self.block_is_open(left, top):
+                    return True
+        return False
+
+
+    def try_open_wall(self, cell: Cell, direction: Walls) -> bool:
+        """Try to open a wall unless it is outside, 42 cell, or would create a 3x3"""
+        neighbor = self.grid.get_neighbor(cell.position, direction)
+        if neighbor == None:
+            return False
+        if cell.cell_42 or neighbor.cell_42:
+            return False
+        if not cell.walls & direction: # already open
+            return False
+
+        self.grid.open_passage(cell.position, direction)
+        if self.makes_3x3(cell) or self.makes_3x3(neighbor):
+            self.grid.close_passage(cell.position, direction)  # undo
+            return False
+        return True
+
+
+    def add_loops(self) -> None:
+        """Open extra walls so there is more than one way to go.
+        A perfect maze has only one path between two cells. For a game
+        board we want loops, so a player being chased always has
+        another way to run. We open random closed walls (about one for
+        every 20 cells, and at least 2), keeping the 3x3 rule.
+        """
+        loops_wanted = max(2, self.width * self.height // 20)
+        loops_added = 0
+        attempts = 0
+        max_attempts = self.width * self.height * 20  # never loop forever
+
+        while loops_added < loops_wanted and attempts < max_attempts:
+            attempts += 1
+            x = self.rng.randrange(self.width)
+            y = self.rng.randrange(self.height)
+            direction = self.rng.choice(DIRECTIONS)
+            if self.try_open_wall(self.grid.cells[y][x], direction):
+                loops_added += 1
+
+
+    def count_open_walls(self, cell: Cell) -> int:
+        """Count how many walls of a cell are open (0 to 4)."""
+        count = 0
+        for direction in DIRECTIONS:
+            if not cell.walls & direction:
+                count += 1
+        return count
+        
+
+    def remove_dead_ends(self) -> None:
+        """Open a wall in every dead end that can be opened.
+        A dead end is a cell with only one open wall. For each of them
+        we try to open one more wall, so the player can't get trapped.
+        Some dead ends can't be fixed (for example a cell inside the
+        "42" pattern with only one free neighbor), they stay.
+        Opening a wall never creates a new dead end, so one pass over
+        the grid is enough.
+        """
+        for row in self.grid.cells:
+            for cell in row:
+                if cell.cell_42 or self.count_open_walls(cell) != 1:
+                    continue
+                # try the directions in a random order
+                directions = DIRECTIONS.copy()
+                self.rng.shuffle(directions)
+                for direction in directions:
+                    if self.try_open_wall(cell, direction):
+                        break
+
+
+    # PERFECT = True
     def solve(self) -> str:
         """BFS to find the shortest path between entry and exit.
 
