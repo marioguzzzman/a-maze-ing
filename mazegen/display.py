@@ -224,6 +224,12 @@ def show_grid(generator: MazeGenerator) -> None:
                 draw_path_line(
                     pixels, size_line, start, end, current_palette["path"]
                 )
+        entry_x, entry_y = generator.entry_point
+        exit_x, exit_y = generator.exit_point
+        entry_cell = current_grid.cells[entry_y][entry_x]
+        exit_cell = current_grid.cells[exit_y][exit_x]
+        fill_cell(pixels, size_line, entry_cell, current_palette["pattern"])
+        fill_cell(pixels, size_line, exit_cell, current_palette["pattern"])
         for row in current_grid.cells:
             for cell in row:
                 draw_cell(pixels, size_line, cell, current_palette)
@@ -249,7 +255,12 @@ def show_grid(generator: MazeGenerator) -> None:
             path_letters = generator.solve()
             path = path_positions(path_letters, generator.entry_point, grid)
             hex_maze = generator.maze_to_hex()
-            write_hex_to_file(hex_maze)
+            write_hex_to_file(
+                hex_maze,
+                generator.entry_point,
+                generator.exit_point,
+                path_letters,
+            )
             redraw(grid, palette_selected, path, show_path)
         if key_code == KEY_2:
             show_path = not show_path
