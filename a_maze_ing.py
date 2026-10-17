@@ -72,6 +72,9 @@ def main() -> None:
     except ValueError as e:
         print(f"Can't generate this maze: {e}")
         sys.exit(1)
+    except OSError as e:
+        print(f"Can't write the output file: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
