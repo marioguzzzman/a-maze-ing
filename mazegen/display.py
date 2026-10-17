@@ -183,18 +183,18 @@ def show_grid(generator: MazeGenerator) -> None:
             pixels, size_line, window_width, window_height,
             current_palette["background"],
         )
-        for row in current_grid.cells:
-            for cell in row:
-                draw_cell(pixels, size_line, cell, current_palette)
         if show_path:
             for x, y in path_to_show:
                 path_cell = current_grid.cells[y][x]
                 fill_cell(
                     pixels, size_line, path_cell, current_palette["path"]
                 )
+        for row in current_grid.cells:
+            for cell in row:
+                draw_cell(pixels, size_line, cell, current_palette)
 
         mlx_library.mlx_put_image_to_window(
-            mlx_connection, window, image, 0, 0
+            mlx_connection, window,  image, 0, 0
         )
 
     redraw(grid, palette_selected, path, show_path)
