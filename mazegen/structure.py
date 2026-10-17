@@ -21,6 +21,15 @@ class Walls(IntFlag):
     WEST = 8
 
 
+# Used in close_passage()
+OPPOSITE = {
+    Walls.NORTH: Walls.SOUTH,
+    Walls.SOUTH: Walls.NORTH,
+    Walls.EAST: Walls.WEST,
+    Walls.WEST: Walls.EAST,
+}
+
+
 class Cell:
     """Owns its own local state: which walls it has, position, flags."""
 
@@ -59,11 +68,9 @@ class Cell:
         # safe to call even if direction was already open.
         self.walls = self.walls & (~direction)
 
-
     def close_wall(self, direction: Walls) -> None:
         """Close one of the cell's walls."""
         self.walls = self.walls | direction
-
 
 
 class Grid:
@@ -154,7 +161,6 @@ class Grid:
                 opposite_direction = Walls.WEST
             neighbor.open_wall(opposite_direction)
 
-
     def close_passage(
         self, position: tuple[int, int], direction: Walls
     ) -> None:
@@ -212,18 +218,6 @@ def create_42_pattern(grid: Grid) -> set[tuple[int, int]]:
     pattern_height = len(pattern)
     pattern_width = len(pattern[0])
 
-    # Leave a 1-cell margin on every side so the pattern never touches
-    # the grid's border.
-    min_width = pattern_width + 2
-    min_height = pattern_height + 2
-    if grid.width < min_width or grid.height < min_height:
-        print(
-            f"Warning: grid is {grid.width}x{grid.height}, too small for "
-            f"the \"42\" pattern (needs at least {min_width}x{min_height})"
-            " - skipping it."
-        )
-        return set()
-
     # Center the 42 pattern
     starting_row = (grid.height - pattern_height) // 2
     starting_col = (grid.width - pattern_width) // 2
@@ -237,6 +231,9 @@ def create_42_pattern(grid: Grid) -> set[tuple[int, int]]:
                 grid_col = starting_col + col
                 blocked_cells.add((grid_row, grid_col))
 
+    # TODO: if the grid is too small for this pattern (width < 9 or
+    # height < 7), skip it and print an error instead of returning
+    # positions that may fall outside the grid.
     return blocked_cells
 
 
