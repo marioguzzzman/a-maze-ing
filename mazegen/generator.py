@@ -60,7 +60,7 @@ class MazeGenerator:
         self.grid = create_grid(self.width, self.height)
         apply_42_pattern(self.grid)
         self.grid = self.grid
-        self.random_open_walls()
+        self.build_maze()
         return self.grid
 
     def random_open_walls(self) -> None:
@@ -99,7 +99,7 @@ class MazeGenerator:
         result = []
         for direction in DIRECTIONS:
             neighbor = self.grid.get_neighbor(cell.position, direction)
-            if neighbor is not None or not neighbor.visited:
+            if neighbor is not None and not neighbor.visited:
                 result.append((direction, neighbor))
         return result
 
