@@ -1,27 +1,39 @@
 #! /usr/bin/env python3
 
 from mlx import Mlx
+import random
 from mazegen.generator import MazeGenerator
 from mazegen.structure import Cell, Grid, Walls
 
-# Menu
-"""
-- **A graphical display using the MiniLibX (MLX) library.**
 
-=== A-Maze-ing ===
-1. Re-generate a new maze
-2. Show / Hide the shortest path
-3. Rotate the wall colours
-4. Quit
-Choice? (1-4): _
-"""
-
-CELL_SIZE = 70
+CELL_SIZE = 60
 BYTES_PER_PIXEL = 4
-# each colour is 4 bytes: blue, green, red, alpha (or similar order)
-BLACK = (0, 0, 0, 255)
-WHITE = (255, 255, 255, 255)
-PATTERN_COLOR = (0, 165, 255, 255)
+
+PUMPKIN = {
+    "background": (14, 6, 6, 255),
+    "wall": (125, 28, 54, 255),
+    "pattern": (13, 79, 211, 255),
+    "path": (144, 158, 249, 255),
+}
+SODA = {
+    "background": (204, 118, 33, 255),
+    "wall": (110, 125, 255, 255),
+    "pattern": (172, 166, 252, 255),
+    "path": (203, 231, 232, 255),
+}
+CHERRY_MELON = {
+    "background": (234, 222, 252, 255),
+    "wall": (109, 77, 255, 255),
+    "pattern": (53, 89, 38, 255),
+    "path": (36, 40, 1, 255),
+}
+SOVIET = {
+    "background": (192, 214, 232, 255),
+    "wall": (141, 147, 146, 255),
+    "pattern": (28, 40, 161, 255),
+    "path": (0, 0, 0, 255),
+}
+PALETTES = [PUMPKIN, SODA, CHERRY_MELON, SOVIET]
 
 KEY_1 = ord("1")
 KEY_2 = ord("2")
@@ -43,28 +55,31 @@ def set_pixel(
 
 
 def clear_image(
-    pixels: memoryview, size_line: int, width: int, height: int
+    pixels: memoryview, size_line: int, width: int, height: int,
+    background_color: tuple[int, int, int, int],
 ) -> None:
     for y in range(height):
         for x in range(width):
             position = y * size_line + x * BYTES_PER_PIXEL
-            set_pixel(pixels, position, BLACK)
+            set_pixel(pixels, position, background_color)
 
 
 def draw_horizontal_wall(
-    pixels: memoryview, size_line: int, y: int, x_start: int, x_end: int
+    pixels: memoryview, size_line: int, y: int, x_start: int, x_end: int,
+    wall_color: tuple[int, int, int, int],
 ) -> None:
     for x in range(x_start, x_end + 1):
         position = y * size_line + x * BYTES_PER_PIXEL
-        set_pixel(pixels, position, WHITE)
+        set_pixel(pixels, position, wall_color)
 
 
 def draw_vertical_wall(
-    pixels: memoryview, size_line: int, x: int, y_start: int, y_end: int
+    pixels: memoryview, size_line: int, x: int, y_start: int, y_end: int,
+    wall_color: tuple[int, int, int, int],
 ) -> None:
     for y in range(y_start, y_end + 1):
         position = y * size_line + x * BYTES_PER_PIXEL
-        set_pixel(pixels, position, WHITE)
+        set_pixel(pixels, position, wall_color)
 
 
 def fill_cell(
@@ -80,9 +95,12 @@ def fill_cell(
             set_pixel(pixels, position, color)
 
 
-def draw_cell(pixels: memoryview, size_line: int, cell: Cell) -> None:
+def draw_cell(
+    pixels: memoryview, size_line: int, cell: Cell,
+    palette: dict[str, tuple[int, int, int, int]],
+) -> None:
     if cell.cell_42:
-        fill_cell(pixels, size_line, cell, PATTERN_COLOR)
+        fill_cell(pixels, size_line, cell, palette["pattern"])
         return
 
     cell_x, cell_y = cell.position
@@ -90,15 +108,18 @@ def draw_cell(pixels: memoryview, size_line: int, cell: Cell) -> None:
     top = cell_y * CELL_SIZE
     right = left + CELL_SIZE - 1
     bottom = top + CELL_SIZE - 1
+    wall_color = palette["wall"]
 
     if (cell.walls & Walls.NORTH) == Walls.NORTH:
-        draw_horizontal_wall(pixels, size_line, top, left, right)
+        draw_horizontal_wall(pixels, size_line, top, left, right, wall_color)
     if (cell.walls & Walls.SOUTH) == Walls.SOUTH:
-        draw_horizontal_wall(pixels, size_line, bottom, left, right)
+        draw_horizontal_wall(
+            pixels, size_line, bottom, left, right, wall_color
+        )
     if (cell.walls & Walls.WEST) == Walls.WEST:
-        draw_vertical_wall(pixels, size_line, left, top, bottom)
+        draw_vertical_wall(pixels, size_line, left, top, bottom, wall_color)
     if (cell.walls & Walls.EAST) == Walls.EAST:
-        draw_vertical_wall(pixels, size_line, right, top, bottom)
+        draw_vertical_wall(pixels, size_line, right, top, bottom, wall_color)
 
 
 def show_grid(generator: MazeGenerator) -> None:
@@ -113,6 +134,9 @@ def show_grid(generator: MazeGenerator) -> None:
     )
     mlx_library.mlx_clear_window(mlx_connection, window)
 
+    palette_index = random.randint(0, len(PALETTES) - 1)
+    palette_selected = color_chooser(palette_index)
+
     image = mlx_library.mlx_new_image(
         mlx_connection, window_width, window_height
     )
@@ -123,27 +147,37 @@ def show_grid(generator: MazeGenerator) -> None:
         mlx_library.mlx_get_data_addr(image)
     )
 
-    def redraw(current_grid: Grid) -> None:
-        clear_image(pixels, size_line, window_width, window_height)
+    def redraw(
+        current_grid: Grid,
+        current_palette: dict[str, tuple[int, int, int, int]],
+    ) -> None:
+        clear_image(
+            pixels, size_line, window_width, window_height,
+            current_palette["background"],
+        )
         for row in current_grid.cells:
             for cell in row:
-                draw_cell(pixels, size_line, cell)
+                draw_cell(pixels, size_line, cell, current_palette)
         mlx_library.mlx_put_image_to_window(
             mlx_connection, window, image, 0, 0
         )
 
-    redraw(grid)
+    redraw(grid, palette_selected)
     menu_actions()
 
     def on_key_press(key_code: int, extra_data: object) -> int:
         nonlocal grid
+        nonlocal palette_index
+        nonlocal palette_selected
         if key_code == KEY_1:
             grid = generator.generate_maze()
-            redraw(grid)
+            redraw(grid, palette_selected)
         if key_code == KEY_2:
             pass
         if key_code == KEY_3:
-            pass
+            palette_index += 1
+            palette_selected = color_chooser(palette_index)
+            redraw(grid, palette_selected)
         if key_code == KEY_4:
             mlx_library.mlx_loop_exit(mlx_connection)
         return 0
@@ -161,6 +195,22 @@ def menu_actions() -> None:
     print("3. Rotate the wall colours")
     print("4. Quit")
     print("Choice? (1-4):")
+
+
+def color_chooser(
+    color_selection: int,
+) -> dict[str, tuple[int, int, int, int]]:
+    """Return one palette from PALETTES.
+
+    Args:
+        color_selection: any integer. Wrapped with ``%`` so it's always a
+            valid index - callers can just keep incrementing to rotate.
+
+    Returns:
+        The selected palette: a dict mapping role name ("background",
+        "wall", "pattern", "path") to a colour tuple.
+    """
+    return PALETTES[color_selection % len(PALETTES)]
 
 
 def main() -> None:
