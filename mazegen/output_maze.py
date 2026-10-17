@@ -2,7 +2,7 @@ def write_hex_to_file(
     maze: list[str],
     entry: tuple[int, int],
     exit: tuple[int, int],
-    solution = str,
+    solution: str,
     filename: str = "output_maze.txt"
 ) -> None:
 
