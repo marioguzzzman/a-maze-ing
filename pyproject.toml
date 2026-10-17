@@ -19,4 +19,10 @@ packages = ["mazegen"]
 
 [tool.mypy]
 python_version = "3.10"
-exclude = ['^\.venv/', '^build/', '^dist/']
+exclude = [
+    '^\.venv/', '^\.amazeing_env/', '^build/', '^dist/', '^info_stuff/',
+]
+
+[[tool.mypy.overrides]]
+module = "mlx"
+ignore_missing_imports = true

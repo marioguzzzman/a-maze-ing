@@ -1,31 +1,106 @@
 *This project has been created as part of the 42 curriculum by maguzman, dbali*
 
-**Description** section that clearly presents the project, including its goal and a brief
-  overview.
+## Description
 
-**Instructions** section containing any relevant information about compilation,
-  installation, and/or execution.
+A-Maze-ing is a maze generator and visualizer, built for the 42 curriculum. It reads a
+configuration file, generates a maze with a recursive-backtracker algorithm — either a
+`PERFECT` maze with exactly one path between any two cells, or a Pac-Man-style playable board
+with open corners and multiple routes — hides a "42" pattern in the walls, writes it out in a
+hexadecimal format, and displays it live in an MLX window. The window is interactive: regenerate
+a new maze, show or hide the shortest solution path, and rotate between several wall-colour
+palettes, all without restarting the program. The generation logic itself lives in a standalone,
+reusable `mazegen` package, independent of the config/display code around it.
 
-**Resources** section listing classic references related to the topic (documentation,
-  articles, tutorials, etc.), as well as a description of **how AI was used** — specifying for
-  which tasks and which parts of the project.
+## Instructions
 
-**Additional sections may be required depending on the project** (e.g., usage examples,
-  feature list, technical choices, etc.).
+**Requirements:** Python 3.10+, and (for the MLX display) a Linux environment with Vulkan
+available — `build-essential git pkg-config libvulkan-dev vulkan-tools mesa-vulkan-drivers
+libxcb1-dev libxcb-keysyms1-dev libbsd-dev zlib1g-dev`.
 
-*Any required additions will be explicitly listed below.*
+```sh
+make install   # creates .amazeing_env, installs dependencies, builds MLX
+make run       # runs python3 a_maze_ing.py config.txt
+make debug     # same, under pdb
+make lint      # flake8 . && mypy . --warn-return-any --warn-unused-ignores \
+               #   --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+make lint-strict  # flake8 . && mypy . --strict
+make clean     # removes caches/build artifacts
+make build     # builds the mazegen-*.whl package
+```
 
-- The complete structure and format of your config file.
+To run with a different config file: `python3 a_maze_ing.py your_config.txt`.
+
+Once the window is open:
+
+```
+1  Re-generate a new maze
+2  Show / Hide the shortest path
+3  Rotate the wall colours
+4  Quit
+```
+
+## Configuration file format
+
+One `KEY=VALUE` pair per line; lines starting with `#` are comments and are ignored.
+
+| Key           | Required? | Description                      | Example                |
+| ------------- | --------- | --------------------------------- | ----------------------- |
+| `WIDTH`       | yes       | Maze width, in cells              | `WIDTH=20`               |
+| `HEIGHT`      | yes       | Maze height, in cells             | `HEIGHT=15`              |
+| `ENTRY`       | yes       | Entry coordinates, `x,y`          | `ENTRY=0,0`               |
+| `EXIT`        | yes       | Exit coordinates, `x,y`           | `EXIT=19,14`              |
+| `OUTPUT_FILE` | yes       | Output filename                   | `OUTPUT_FILE=maze.txt`    |
+| `PERFECT`     | yes       | `True` for a perfect (loopless) maze, `False` for a playable board with loops | `PERFECT=True` |
+| `SEED`        | no        | Reproducibility seed; same seed → same maze | `SEED=42`       |
+
+See `config.txt` at the repository root for a working example.
+
+## Reusable module
+
+The maze generation logic lives in the `mazegen` package (`mazegen/generator.py`,
+`mazegen/structure.py`), and it is independent of config parsing, the output file, and the MLX display, making it reusable in another project.
+
+```python
+from mazegen import MazeGenerator
+
+generator = MazeGenerator(
+    width=20, height=15,
+    entry_point=(0, 0), exit_point=(19, 14),
+    seed=42, perfect=True,
+)
+grid = generator.generate_maze()
+solution = generator.solve()
+```
+
+- **Custom parameters:** `width`, `height` (maze size); `entry_point`, `exit_point` (`(x, y)`
+  tuples); `seed` (optional - same seed twice gives the same maze back); `perfect` (`True` for
+  exactly one path between any two cells, `False` for a looped, playable board).
+- **Accessing the structure:** `generate_maze()` returns a `Grid`. `grid.cells` is a 2D list of
+  `Cell` objects indexed `[y][x]`; each `Cell` has a `.walls` bitmask (`mazegen.structure.Walls`)
+  and a `.position` `(x, y)` tuple. The same `Grid` stays available as `generator.grid`.
+- **Accessing a solution:** `solve()` returns the shortest path from `entry_point` to
+  `exit_point` as a string of direction letters (`N`/`E`/`S`/`W`), e.g. `"EESEESS..."`.
+- `maze_to_hex()` returns the maze as a list of strings, one hex digit per cell per row (the
+  output-file encoding: bit 0 = North, 1 = East, 2 = South, 3 = West; a set bit means that wall
+  is closed).
+
+The full version of this documentation can also be found in `mazegen/__init__.py`.
+
+## Resources
+
+- MLX library: https://github.com/42school/mlx_CLXV
+- MLX tutorial: https://aurelienbrabant.fr/blog/getting-started-with-the-minilibx
+- Python bitwise operators: https://realpython.com/python-bitwise-operators/
+- Lospec (colour palette reference): https://lospec.com/
+- Python dictionary iteration: https://www.w3schools.com/PYTHON/python_dictionaries_loop.asp
+- Maze generation algorithms, interactive: https://professor-l.github.io/mazes/
+- CMU 15-112 maze generation notes (PDF): https://www.cs.cmu.edu/~112-s23/notes/student-tp-guides/Mazes.pdf
+
+**How AI was used:** Claude was used throughout this project primarily as a
+Socratic tutor and pair-programming partner to guide us in some of the design decisions, questioning our hypothesis, and brainstorming on possible solutions. We also use it to explain some Python mechanics (bitmasking, closures,
+`nonlocal`, type hints).  We also use it as a reference for discovering the MLX library and building a more easy to read documentation for it. 
 
 ## Maze generation algorithm
-
-> **Status (2026-10-16): this section is the design, not yet the running code.** The
-> mechanics it depends on — `Cell`, `Grid`, wall-opening, the "42" pattern, the full
-> config → generate → display pipeline — are built and tested (see `HANDOFF.md`). The actual
-> carving logic running today is a random placeholder (`MazeGenerator.random_open_walls`) used
-> to prove the mechanism works; it does not implement the backtracker described below yet, and
-> has no connectivity, corridor-width, or `PERFECT` logic. Swapping it for the real algorithm
-> below is the next big step.
 
 ### Cells, graphs, and a tree hiding in the subject
 
@@ -90,11 +165,13 @@ requirement, not a differentiator.
 ### Reproducibility, and why the tree shape helps with solving too
 
 `SEED` works because Python's `random` module isn't actually random — it's a deterministic
-generator sitting on an internal state, and `random.seed(SEED)` sets that state explicitly.
-Seed it with the same number twice and every `random.choice()` call that follows — which
-neighbour to carve toward, which wall to reopen later during braiding — comes back identical
-both times. The maze looks random to whoever's staring at it; underneath, `SEED` already
-decided all of it.
+generator sitting on an internal state. `MazeGenerator.__init__` creates its own dedicated
+generator instance from it, `self.rng = random.Random(seed)`, rather than touching the global
+`random` module's state — so building a maze never interferes with any other code in the same
+program that also happens to use `random`. Seed it with the same number twice and every
+`self.rng.choice()` call that follows — which neighbour to carve toward, which wall to reopen
+later during braiding — comes back identical both times. The maze looks random to whoever's
+staring at it; underneath, `SEED` already decided all of it.
 
 The tree shape pays off again once it's time to solve the maze, not just build it. In
 `PERFECT=True` mode the result is a tree, and a tree has exactly one path between any two
@@ -123,16 +200,6 @@ statistical uniformity, just a valid, reproducible, playable maze. Binary tree i
 tradeoff: trivial and fast, but its visible diagonal drift would fight against hiding a
 recognizable "42" pattern in the walls.
 
+## Team and project management
 
-# MLX visualizaton 
-
-https://github.com/42school/mlx_CLXV
-Tutorial: https://aurelienbrabant.fr/blog/getting-started-with-the-minilibx
-
-- What part of your code is reusable, and how.
-- Your team and project management with:
-  - The roles of each team member.
-  - Your anticipated planning and how it evolved until the end.
-  - What worked well and what could be improved.
-  - Have you used any specific tools? Which ones?
-
+We both worked together debating the issues and trying to understand the elements needed for the maze. Diana focused more on developing the algorithm to build the maze and the solver as well as the logic for implementing multilple solutions. Mario focused more on getting the building block to make the elements of the maze functional to the algorithm. We were both looking into the color palettes ;) 
