@@ -125,6 +125,8 @@ def draw_cell(
 
 def show_grid(generator: MazeGenerator) -> None:
     grid = generator.generate_maze()
+    hex_maze = generator.maze_to_hex()
+    write_hex_to_file(hex_maze)
     mlx_library = Mlx()
     mlx_connection = mlx_library.mlx_init()
 
@@ -209,6 +211,7 @@ def show_grid(generator: MazeGenerator) -> None:
         if key_code == KEY_1:
             grid = generator.generate_maze()
             redraw(grid, palette_selected)
+            write_hex_to_file(hex_maze)
         if key_code == KEY_2:
             show_path = not show_path
             redraw(grid, palette_selected, path, show_path)
