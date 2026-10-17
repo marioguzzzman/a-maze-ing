@@ -55,9 +55,9 @@ KEY_3 = ord("3")
 KEY_4 = ord("4")
 
 
-def build_visual_maze(generator: MazeGenerator) -> None:
+def build_visual_maze(generator: MazeGenerator, output_file: str) -> None:
     """Entry point from a_maze_ing.py: generate and show a maze."""
-    show_grid(generator)
+    show_grid(generator, output_file)
 
 
 def packed_color(color: tuple[int, int, int, int]) -> int:
@@ -210,7 +210,7 @@ def draw_cell(
         draw_vertical_wall(pixels, size_line, right, top, bottom, wall_color)
 
 
-def show_grid(generator: MazeGenerator) -> None:
+def show_grid(generator: MazeGenerator, output_file: str) -> None:
     """Generate a maze, open an MLX window, and run the interactive menu.
 
     Builds the first maze and solution, writes the output file, then
@@ -219,6 +219,8 @@ def show_grid(generator: MazeGenerator) -> None:
 
     Args:
         generator: the MazeGenerator to draw (and re-generate from).
+        output_file: where to write the hex-encoded maze (the
+            config file's OUTPUT_FILE value).
     """
     grid = generator.generate_maze()
     path_letters = generator.solve()
@@ -228,6 +230,7 @@ def show_grid(generator: MazeGenerator) -> None:
             generator.entry_point,
             generator.exit_point,
             path_letters,
+            output_file,
     )
     mlx_library = Mlx()
     mlx_connection = mlx_library.mlx_init()
@@ -353,6 +356,7 @@ def show_grid(generator: MazeGenerator) -> None:
                 generator.entry_point,
                 generator.exit_point,
                 path_letters,
+                output_file,
             )
             redraw(grid, palette_selected, path, show_path)
         if key_code == KEY_2:
@@ -402,7 +406,7 @@ def main() -> None:
     """Standalone test entry point - run this file directly to see a
     test maze, independent of the real a_maze_ing.py pipeline."""
     test_generator = MazeGenerator(10, 8, (0, 0), (9, 7), 42)
-    show_grid(test_generator)
+    show_grid(test_generator, "output_maze.txt")
 
 
 if __name__ == "__main__":

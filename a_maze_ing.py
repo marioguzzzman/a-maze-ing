@@ -67,7 +67,7 @@ def main() -> None:
         cast("int | None", config_ready.get("SEED")),
         cast(bool, config_ready["PERFECT"]),
     )
-    build_visual_maze(generator)
+    build_visual_maze(generator, cast(str, config_ready["OUTPUT_FILE"]))
 
 
 if __name__ == "__main__":
