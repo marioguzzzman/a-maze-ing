@@ -136,6 +136,10 @@ def show_grid(generator: MazeGenerator) -> None:
 
     palette_index = random.randint(0, len(PALETTES) - 1)
     palette_selected = color_chooser(palette_index)
+    show_path = False
+
+    #remove after testing
+    path = [[0, 1], [1, 1], [2, 1]]
 
     image = mlx_library.mlx_new_image(
         mlx_connection, window_width, window_height
