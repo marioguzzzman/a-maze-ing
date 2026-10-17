@@ -60,6 +60,12 @@ class Cell:
         self.walls = self.walls & (~direction)
 
 
+    def close_wall(self, direction: Walls) -> None:
+        """Close one of the cell's walls."""
+        self.walls = self.walls | direction
+
+
+
 class Grid:
     """Owns space: creates the cells, knows who's next to whom."""
 
@@ -147,6 +153,21 @@ class Grid:
             else:
                 opposite_direction = Walls.WEST
             neighbor.open_wall(opposite_direction)
+
+
+    def close_passage(
+        self, position: tuple[int, int], direction: Walls
+    ) -> None:
+        """Close a passage between a cell and its neighbor in `direction`.
+        Closes the wall on both sides of
+        the shared boundary, so the two cells stay coherent.
+        """
+        neighbor = self.get_neighbor(position, direction)
+        if neighbor is None:
+            raise ValueError("Can't close a wall in that position")
+        current_cell = self.cells[position[1]][position[0]]
+        current_cell.close_wall(direction)
+        neighbor.close_wall(OPPOSITE[direction])
 
 
 def create_grid(width: int, height: int) -> Grid:
