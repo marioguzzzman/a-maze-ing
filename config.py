@@ -74,6 +74,10 @@ def clean_config(raw_config: dict[str, str]) -> Config:
         elif key in ["OUTPUT_FILE"]:
             cleaned_config[key] = str(value)
         elif key in ["PERFECT"]:
+            if value not in ("True", "False"):
+                raise ValueError(
+                    f"PERFECT must be True or False, got {value!r}"
+                )
             cleaned_config[key] = value == "True"
     return cleaned_config
 
