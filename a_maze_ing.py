@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
 
 import sys
-from config import parse_config
+from typing import cast
+from config import Config, parse_config
 from mazegen.generator import MazeGenerator
 from mazegen.display import build_visual_maze
 
@@ -21,7 +22,7 @@ writes the hex output file, and runs the interactive terminal display.
 
 
 # config check
-def config_check() -> dict:
+def config_check() -> Config:
     # Check arguments
     if len(sys.argv) == 1:
         print("No arguments provided!")
@@ -48,12 +49,13 @@ def config_check() -> dict:
 def main() -> None:
     config_ready = config_check()
     generator = MazeGenerator(
-        config_ready["WIDTH"],
-        config_ready["HEIGHT"],
-        config_ready["ENTRY"],
-        config_ready["EXIT"],
-        config_ready["SEED"],
-        config_ready["PERFECT"],)
+        cast(int, config_ready["WIDTH"]),
+        cast(int, config_ready["HEIGHT"]),
+        cast("tuple[int, int]", config_ready["ENTRY"]),
+        cast("tuple[int, int]", config_ready["EXIT"]),
+        cast(int, config_ready["SEED"]),
+        cast(bool, config_ready["PERFECT"]),
+    )
     build_visual_maze(generator)
 
 

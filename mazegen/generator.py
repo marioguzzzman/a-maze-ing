@@ -59,17 +59,16 @@ class MazeGenerator:
     def generate_maze(self) -> Grid:
         self.grid = create_grid(self.width, self.height)
         apply_42_pattern(self.grid)
-        self.grid = self.grid
         self.build_maze()
         return self.grid
 
     def random_open_walls(self) -> None:
         """Roughly test the wall-opening mechanism with random picks.
 
-        Placeholder to checkthat opening walls actually shows up correctly, 
-        and that "42" cells work correctly stay sealed off. 
-        For every cell, there's a 1 in 4 chance of trying to open one random 
-        direction.
+        Placeholder to check that opening walls actually shows up
+        correctly, and that "42" cells correctly stay sealed off.
+        For every cell, there's a 1 in 3 chance of trying to open one
+        random direction.
         """
         directions = [Walls.NORTH, Walls.EAST, Walls.SOUTH, Walls.WEST]
         for row in self.grid.cells:
@@ -84,18 +83,18 @@ class MazeGenerator:
                     if neighbor is not None and not neighbor.cell_42:
                         self.grid.open_passage(cell.position, direction)
 
-
-    def check_cell(self, name: str, cell: tuple[int, int]):
-        """Check that a cell is inside the grid and not a 42 cell (Entry, Exit)"""
+    def check_cell(self, name: str, cell: tuple[int, int]) -> None:
+        """Check a cell is inside the grid and not a 42 cell (Entry, Exit)."""
         x, y = cell
         if x < 0 or x >= self.width or y < 0 or y >= self.height:
             raise ValueError(f"{name} {cell} is outside the maze!")
         if self.grid.cells[y][x].cell_42:
-            raise ValueError (f"{name} {cell} is in the 42 patters!")
+            raise ValueError(f"{name} {cell} is in the 42 pattern!")
 
-
-    def get_unvisited_neighbors(self, cell: Cell):
-        """Get the cell neighbors that are not visited yet"""
+    def get_unvisited_neighbors(
+        self, cell: Cell
+    ) -> list[tuple[Walls, Cell]]:
+        """Get the cell neighbors that are not visited yet."""
         result = []
         for direction in DIRECTIONS:
             neighbor = self.grid.get_neighbor(cell.position, direction)
@@ -103,8 +102,7 @@ class MazeGenerator:
                 result.append((direction, neighbor))
         return result
 
-
-    def build_maze(self):
+    def build_maze(self) -> None:
         """Build a maze with a depth-first search.
         Start at the entry. Move to a random unvisited neighbor and
         open the wall between the two cells. When there is nowhere
@@ -123,29 +121,36 @@ class MazeGenerator:
         start_x, start_y = self.entry_point
         start_cell = self.grid.cells[start_y][start_x]
         start_cell.visited = True
-        stack = [start_cell] # path we walk until we reach a dead end
-        
+        stack = [start_cell]  # path we walk until we reach a dead end
+
         while len(stack) > 0:
             current = stack[-1]
-            options = self.get_unvisited_neighbors(current) # where you can go
+            # where you can go
+            options = self.get_unvisited_neighbors(current)
             if len(options) == 0:
-                stack.pop() # dead end. remove the last cell, step back.
+                # dead end. remove the last cell, step back.
+                stack.pop()
             else:
-                direction, neighbor = self.rng.choice(options) # choose random option
-                self.grid.open_passage(current.position, direction) # open passage between
+                # choose random option
+                direction, neighbor = self.rng.choice(options)
+                # open passage between current cell and its neighbor
+                self.grid.open_passage(current.position, direction)
                 neighbor.visited = True
                 stack.append(neighbor)
 
+    def solve(self) -> str:
+        """BFS to find the shortest path between entry and exit.
 
-    def solve(self):
-        """BFS (breadth-first search) algorithm to find the shortest path between entry and exit.
-        The search spreads out from the entry one step at a time, so the
-        first time it reaches the exit, it got there by a shortest path."""
-
-
-        queue = deque([self.entry_point]) # cells we have to visit. start at entry
-        seen = {self.entry_point} # cells we visited
-        came_from: dict[tuple[int, int], tuple[tuple[int, int], str]] = {} # cells we already reached,  where we came from and which move we used.
+        The search spreads out from the entry one step at a time, so
+        the first time it reaches the exit, it got there by a
+        shortest path.
+        """
+        # cells we have to visit. start at entry
+        queue = deque([self.entry_point])
+        seen = {self.entry_point}  # cells we visited
+        # cells we already reached, where we came from and which
+        # move we used.
+        came_from: dict[tuple[int, int], tuple[tuple[int, int], str]] = {}
 
         while len(queue) > 0:
             # Take the cell that has been waiting the longest (the front
@@ -185,7 +190,7 @@ class MazeGenerator:
         # If the exit was not reached
         if self.exit_point not in seen:
             raise ValueError("There is no path between ENTRY and EXIT")
-    
+
         # walk back from the exit to the entry.
         # Each step, jump to the cell we came from, and write down the
         # move we used to get from there to here.
@@ -194,22 +199,22 @@ class MazeGenerator:
         while position != self.entry_point:
             position, letter = came_from[position]
             letters.append(letter)
-    
+
         # We collected the moves from the exit backwards, so flip the
         # list to get them in the order entry -> exit.
         letters.reverse()
         return "".join(letters)
 
     # hexadecimal encoding - representing decimals in hexa
-    def maze_to_hex(self):
-        result = [] # hexa representation in rows
+    def maze_to_hex(self) -> list[str]:
+        result = []  # hexa representation in rows
 
         for row in self.grid.cells:
-            hex_row = "" # row of cells in hexa
+            hex_row = ""  # row of cells in hexa
 
             for cell in row:
                 # format(value, format_specifier)
-                hex_row += format(cell.walls, "x") # convert numbers to hexa
+                hex_row += format(cell.walls, "x")  # numbers to hexa
             result.append(hex_row)
 
         return result

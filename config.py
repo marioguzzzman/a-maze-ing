@@ -1,11 +1,14 @@
 #! /usr/bin/env python3
 
-#Open and Parsing
+# Open and Parsing
 """
 Open File, parse the config file and assign to variables
 """
 
 # from amaze.a_maze_ing import ConfigError
+
+ConfigValue = int | tuple[int, int] | str | bool
+Config = dict[str, ConfigValue]
 
 
 def prepare_lines(lines: list[str]) -> list[str]:
@@ -19,16 +22,16 @@ def prepare_lines(lines: list[str]) -> list[str]:
     return clean_lines
 
 
-def build_config(clean_lines: list[str]) -> dict:
-    raw_config = {}
+def build_config(clean_lines: list[str]) -> dict[str, str]:
+    raw_config: dict[str, str] = {}
     for line in clean_lines:
         key, value = line.split("=")
         raw_config[key] = value
     return raw_config
 
 
-def clean_config(raw_config: dict) -> dict:
-    cleaned_config = {}
+def clean_config(raw_config: dict[str, str]) -> Config:
+    cleaned_config: Config = {}
     # try:
     for key, value in raw_config.items():
         if key in ["WIDTH", "HEIGHT", "SEED"]:
@@ -46,7 +49,7 @@ def clean_config(raw_config: dict) -> dict:
     return cleaned_config
 
 
-def parse_config(lines: list[str]) -> dict:
+def parse_config(lines: list[str]) -> Config:
     clean_lines = prepare_lines(lines)
     raw_config = build_config(clean_lines)
     cleaned_config = clean_config(raw_config)

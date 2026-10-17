@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped]
 import random
 from mazegen.generator import LETTERS, MazeGenerator
 from mazegen.structure import Cell, Grid, Walls
