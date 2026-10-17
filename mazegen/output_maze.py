@@ -24,7 +24,7 @@ def write_hex_to_file(
             file.write(row + "\n")
 
         file.write("\n")
-        file.write((f"{entry[0]}, {entry[1]}\n"))
-        file.write(f"{exit[0]}, {exit[1]}\n")
+        file.write((f"{entry[0]},{entry[1]}\n"))
+        file.write(f"{exit[0]},{exit[1]}\n")
 
         file.write(solution + "\n")
