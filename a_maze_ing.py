@@ -67,7 +67,11 @@ def main() -> None:
         cast("int | None", config_ready.get("SEED")),
         cast(bool, config_ready["PERFECT"]),
     )
-    build_visual_maze(generator, cast(str, config_ready["OUTPUT_FILE"]))
+    try:
+        build_visual_maze(generator, cast(str, config_ready["OUTPUT_FILE"]))
+    except ValueError as e:
+        print(f"Can't generate this maze: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
