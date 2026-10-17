@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from mlx import Mlx  # type: ignore[import-untyped]
+from mlx import Mlx
 import random
 from mazegen.generator import LETTERS, MazeGenerator
 from mazegen.structure import Cell, Grid, Walls
@@ -13,7 +13,7 @@ PATH_LINE_WIDTH = 10
 # mlx_string_put's (x, y) is a glyph's top-left corner, not its center -
 # these are the font's fixed glyph box size, straight from mlx_font.c /
 # mlx_string_put.c (1140 / 95 chars - 2 = 10 wide, 20 tall).
-LABEL_GLYPH_WIDTH = 10
+LABEL_GLYPH_WIDTH = 15
 LABEL_GLYPH_HEIGHT = 20
 
 PUMPKIN = {
