@@ -3,6 +3,7 @@
 import sys
 from typing import cast
 from config import Config, parse_config
+from errors import ConfigError
 from mazegen.generator import MazeGenerator
 from mazegen.display import build_visual_maze
 
@@ -41,8 +42,9 @@ def config_check() -> Config:
         except FileNotFoundError as e:
             print(f"File {sys.argv[1]} not found!: {e}")
             sys.exit(1)
-    print(config_ready)
-    print("Config ready!")
+        except ConfigError as e:
+            print(f"Invalid config: {e}")
+            sys.exit(1)
     return config_ready
 
 
@@ -53,7 +55,7 @@ def main() -> None:
         cast(int, config_ready["HEIGHT"]),
         cast("tuple[int, int]", config_ready["ENTRY"]),
         cast("tuple[int, int]", config_ready["EXIT"]),
-        cast(int, config_ready["SEED"]),
+        cast("int | None", config_ready.get("SEED")),
         cast(bool, config_ready["PERFECT"]),
     )
     build_visual_maze(generator)
