@@ -46,7 +46,9 @@ def build_config(clean_lines: list[str]) -> dict[str, str]:
     raw_config: dict[str, str] = {}
     for line in clean_lines:
         key, value = line.split("=")
-        raw_config[key] = value
+        # Normalize so "width=20" and "WIDTH=20" both land on the same
+        # key, and stray spaces around '=' don't break the match.
+        raw_config[key.strip().upper()] = value.strip()
     return raw_config
 
 
