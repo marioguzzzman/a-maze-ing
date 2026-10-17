@@ -127,7 +127,12 @@ def show_grid(generator: MazeGenerator) -> None:
     grid = generator.generate_maze()
     path_letters = generator.solve()
     hex_maze = generator.maze_to_hex()
-    write_hex_to_file(hex_maze)
+    write_hex_to_file(
+            hex_maze,
+            generator.entry_point,
+            generator.exit_point,
+            path_letters,
+    )
     mlx_library = Mlx()
     mlx_connection = mlx_library.mlx_init()
 
