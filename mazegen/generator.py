@@ -199,3 +199,17 @@ class MazeGenerator:
         # list to get them in the order entry -> exit.
         letters.reverse()
         return "".join(letters)
+
+    # hexadecimal encoding - representing decimals in hexa
+    def maze_to_hex(self):
+        result = [] # hexa representation in rows
+
+        for row in self.grid.cells:
+            hex_row = "" # row of cells in hexa
+
+            for cell in row:
+                # format(value, format_specifier)
+                hex_row += format(cell.walls, "x") # convert numbers to hexa
+            result.append(hex_row)
+
+        return result
