@@ -9,6 +9,7 @@ from mazegen.output_maze import write_hex_to_file
 
 CELL_SIZE = 60
 BYTES_PER_PIXEL = 4
+PATH_LINE_WIDTH = 10
 
 PUMPKIN = {
     "background": (14, 6, 6, 255),
@@ -94,6 +95,31 @@ def fill_cell(
         for x in range(left, left + CELL_SIZE):
             position = y * size_line + x * BYTES_PER_PIXEL
             set_pixel(pixels, position, color)
+
+
+def cell_center(position: tuple[int, int]) -> tuple[int, int]:
+    x, y = position
+    center_x = x * CELL_SIZE + CELL_SIZE // 2
+    center_y = y * CELL_SIZE + CELL_SIZE // 2
+    return center_x, center_y
+
+
+def draw_path_line(
+    pixels: memoryview, size_line: int,
+    start: tuple[int, int], end: tuple[int, int],
+    color: tuple[int, int, int, int],
+) -> None:
+    start_x, start_y = start
+    end_x, end_y = end
+    half_width = PATH_LINE_WIDTH // 2
+    if start_y == end_y:
+        x_start, x_end = sorted((start_x, end_x))
+        for y in range(start_y - half_width, start_y + half_width + 1):
+            draw_horizontal_wall(pixels, size_line, y, x_start, x_end, color)
+    else:
+        y_start, y_end = sorted((start_y, end_y))
+        for x in range(start_x - half_width, start_x + half_width + 1):
+            draw_vertical_wall(pixels, size_line, x, y_start, y_end, color)
 
 
 def draw_cell(
@@ -187,10 +213,11 @@ def show_grid(generator: MazeGenerator) -> None:
             current_palette["background"],
         )
         if show_path:
-            for x, y in path_to_show:
-                path_cell = current_grid.cells[y][x]
-                fill_cell(
-                    pixels, size_line, path_cell, current_palette["path"]
+            for i in range(len(path_to_show) - 1):
+                start = cell_center(path_to_show[i])
+                end = cell_center(path_to_show[i + 1])
+                draw_path_line(
+                    pixels, size_line, start, end, current_palette["path"]
                 )
         for row in current_grid.cells:
             for cell in row:
@@ -208,11 +235,17 @@ def show_grid(generator: MazeGenerator) -> None:
         nonlocal palette_index
         nonlocal palette_selected
         nonlocal show_path
+        nonlocal path_letters
+        nonlocal path
+        nonlocal hex_maze
 
         if key_code == KEY_1:
             grid = generator.generate_maze()
-            redraw(grid, palette_selected, path, show_path)
+            path_letters = generator.solve()
+            path = path_positions(path_letters, generator.entry_point, grid)
+            hex_maze = generator.maze_to_hex()
             write_hex_to_file(hex_maze)
+            redraw(grid, palette_selected, path, show_path)
         if key_code == KEY_2:
             show_path = not show_path
             redraw(grid, palette_selected, path, show_path)
