@@ -125,6 +125,7 @@ def draw_cell(
 
 def show_grid(generator: MazeGenerator) -> None:
     grid = generator.generate_maze()
+    path_letters = generator.solve()
     hex_maze = generator.maze_to_hex()
     write_hex_to_file(hex_maze)
     mlx_library = Mlx()
@@ -185,18 +186,18 @@ def show_grid(generator: MazeGenerator) -> None:
             pixels, size_line, window_width, window_height,
             current_palette["background"],
         )
-        for row in current_grid.cells:
-            for cell in row:
-                draw_cell(pixels, size_line, cell, current_palette)
         if show_path:
             for x, y in path_to_show:
                 path_cell = current_grid.cells[y][x]
                 fill_cell(
                     pixels, size_line, path_cell, current_palette["path"]
                 )
+        for row in current_grid.cells:
+            for cell in row:
+                draw_cell(pixels, size_line, cell, current_palette)
 
         mlx_library.mlx_put_image_to_window(
-            mlx_connection, window, image, 0, 0
+            mlx_connection, window,  image, 0, 0
         )
 
     redraw(grid, palette_selected, path, show_path)
@@ -210,7 +211,7 @@ def show_grid(generator: MazeGenerator) -> None:
 
         if key_code == KEY_1:
             grid = generator.generate_maze()
-            redraw(grid, palette_selected)
+            redraw(grid, palette_selected, path, show_path)
             write_hex_to_file(hex_maze)
         if key_code == KEY_2:
             show_path = not show_path
