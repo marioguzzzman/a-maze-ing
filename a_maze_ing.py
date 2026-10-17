@@ -54,8 +54,7 @@ def main() -> None:
         config_ready["EXIT"],
         config_ready["SEED"],
         config_ready["PERFECT"],)
-    grid = generator.generate_maze()
-    build_visual_maze(grid)
+    build_visual_maze(generator)
 
 
 if __name__ == "__main__":

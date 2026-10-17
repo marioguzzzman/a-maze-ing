@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
 
 from mlx import Mlx
-from mazegen.structure import Cell, Grid, Walls, create_grid, apply_42_pattern
+from mazegen.generator import MazeGenerator
+from mazegen.structure import Cell, Grid, Walls
 
 # Menu
 """
@@ -23,10 +24,13 @@ WHITE = (255, 255, 255, 255)
 PATTERN_COLOR = (0, 165, 255, 255)
 
 KEY_1 = ord("1")
+KEY_2 = ord("2")
+KEY_3 = ord("3")
+KEY_4 = ord("4")
 
 
-def build_visual_maze(grid: Grid) -> None:
-    show_grid(grid)
+def build_visual_maze(generator: MazeGenerator) -> None:
+    show_grid(generator)
 
 
 def set_pixel(
@@ -97,7 +101,8 @@ def draw_cell(pixels: memoryview, size_line: int, cell: Cell) -> None:
         draw_vertical_wall(pixels, size_line, right, top, bottom)
 
 
-def show_grid(grid: Grid) -> None:
+def show_grid(generator: MazeGenerator) -> None:
+    grid = generator.generate_maze()
     mlx_library = Mlx()
     mlx_connection = mlx_library.mlx_init()
 
@@ -118,16 +123,28 @@ def show_grid(grid: Grid) -> None:
         mlx_library.mlx_get_data_addr(image)
     )
 
-    clear_image(pixels, size_line, window_width, window_height)
+    def redraw(current_grid: Grid) -> None:
+        clear_image(pixels, size_line, window_width, window_height)
+        for row in current_grid.cells:
+            for cell in row:
+                draw_cell(pixels, size_line, cell)
+        mlx_library.mlx_put_image_to_window(
+            mlx_connection, window, image, 0, 0
+        )
 
-    for row in grid.cells:
-        for cell in row:
-            draw_cell(pixels, size_line, cell)
-
-    mlx_library.mlx_put_image_to_window(mlx_connection, window, image, 0, 0)
+    redraw(grid)
+    menu_actions()
 
     def on_key_press(key_code: int, extra_data: object) -> int:
+        nonlocal grid
         if key_code == KEY_1:
+            grid = generator.generate_maze()
+            redraw(grid)
+        if key_code == KEY_2:
+            pass
+        if key_code == KEY_3:
+            pass
+        if key_code == KEY_4:
             mlx_library.mlx_loop_exit(mlx_connection)
         return 0
 
@@ -137,12 +154,20 @@ def show_grid(grid: Grid) -> None:
     mlx_library.mlx_release(mlx_connection)
 
 
+def menu_actions() -> None:
+    print("=== A-Maze-ing ===")
+    print("1. Re-generate a new maze")
+    print("2. Show / Hide the shortest path")
+    print("3. Rotate the wall colours")
+    print("4. Quit")
+    print("Choice? (1-4):")
+
+
 def main() -> None:
-    # standalone test grid, used only when running this file directly -
-    # the real pipeline builds this via MazeGenerator instead
-    test_grid = create_grid(10, 8)
-    apply_42_pattern(test_grid)
-    show_grid(test_grid)
+    # standalone test, used only when running this file directly -
+    # the real pipeline builds this via a_maze_ing.py instead
+    test_generator = MazeGenerator(10, 8, (0, 0), (9, 7), 42)
+    show_grid(test_generator)
 
 
 if __name__ == "__main__":
