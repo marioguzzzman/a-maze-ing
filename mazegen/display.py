@@ -2,7 +2,7 @@
 
 from mlx import Mlx
 import random
-from mazegen.generator import MazeGenerator
+from mazegen.generator import LETTERS, MazeGenerator
 from mazegen.structure import Cell, Grid, Walls
 
 
@@ -124,6 +124,7 @@ def draw_cell(
 
 def show_grid(generator: MazeGenerator) -> None:
     grid = generator.generate_maze()
+    path_letters = generator.solve()
     mlx_library = Mlx()
     mlx_connection = mlx_library.mlx_init()
 
@@ -136,10 +137,31 @@ def show_grid(generator: MazeGenerator) -> None:
 
     palette_index = random.randint(0, len(PALETTES) - 1)
     palette_selected = color_chooser(palette_index)
-    show_path = False
 
-    #remove after testing
-    path = [[0, 1], [1, 1], [2, 1]]
+    def path_positions(
+        path_letters: str,
+        entry_point: tuple[int, int],
+        grid: Grid,
+    ) -> list[tuple[int, int]]:
+        positions = [entry_point]
+        current_position = entry_point
+        direction_from_letter = {}
+        for direction, letter in LETTERS.items():
+            direction_from_letter[letter] = direction
+        for letter in path_letters:
+            direction = direction_from_letter[letter]
+            neighbor_cell = grid.get_neighbor(current_position, direction)
+            if neighbor_cell is None:
+                raise ValueError(
+                    f"Path step {letter!r} from {current_position} points "
+                    "outside the maze - solve() and the grid disagree"
+                )
+            current_position = neighbor_cell.position
+            positions.append(current_position)
+        return positions
+
+    show_path = True
+    path = path_positions(path_letters, generator.entry_point, grid)
 
     image = mlx_library.mlx_new_image(
         mlx_connection, window_width, window_height
@@ -154,6 +176,8 @@ def show_grid(generator: MazeGenerator) -> None:
     def redraw(
         current_grid: Grid,
         current_palette: dict[str, tuple[int, int, int, int]],
+        path_to_show: list[tuple[int, int]],
+        show_path: bool
     ) -> None:
         clear_image(
             pixels, size_line, window_width, window_height,
@@ -162,26 +186,36 @@ def show_grid(generator: MazeGenerator) -> None:
         for row in current_grid.cells:
             for cell in row:
                 draw_cell(pixels, size_line, cell, current_palette)
+        if show_path:
+            for x, y in path_to_show:
+                path_cell = current_grid.cells[y][x]
+                fill_cell(
+                    pixels, size_line, path_cell, current_palette["path"]
+                )
+
         mlx_library.mlx_put_image_to_window(
             mlx_connection, window, image, 0, 0
         )
 
-    redraw(grid, palette_selected)
+    redraw(grid, palette_selected, path, show_path)
     menu_actions()
 
     def on_key_press(key_code: int, extra_data: object) -> int:
         nonlocal grid
         nonlocal palette_index
         nonlocal palette_selected
+        nonlocal show_path
+
         if key_code == KEY_1:
             grid = generator.generate_maze()
-            redraw(grid, palette_selected)
+            redraw(grid, palette_selected, path, show_path)
         if key_code == KEY_2:
-            pass
+            show_path = not show_path
+            redraw(grid, palette_selected, path, show_path)
         if key_code == KEY_3:
             palette_index += 1
             palette_selected = color_chooser(palette_index)
-            redraw(grid, palette_selected)
+            redraw(grid, palette_selected, path, show_path)
         if key_code == KEY_4:
             mlx_library.mlx_loop_exit(mlx_connection)
         return 0
