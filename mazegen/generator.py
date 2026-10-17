@@ -37,6 +37,8 @@ MazeGenerator(width, height, entry, exit, seed=None, perfect=False)
 
 
 class MazeGenerator:
+    """Generates a maze (perfect or not) and finds its shortest path."""
+
     def __init__(
         self,
         width: int,
@@ -46,6 +48,17 @@ class MazeGenerator:
         seed: int | None = None,
         perfect: bool = False
     ):
+        """Store the settings. The maze itself is built by generate_maze.
+
+        Args:
+            width: number of cells across.
+            height: number of cells down.
+            entry_point: (x, y) of the entry cell.
+            exit_point: (x, y) of the exit cell.
+            seed: makes the maze reproducible; None = different each time.
+            perfect: True = exactly one path between any two cells.
+                False = game board with loops and fewer dead ends.
+        """
         self.width = width
         self.height = height
         self.entry_point = entry_point
@@ -57,38 +70,26 @@ class MazeGenerator:
         self.grid = create_grid(width, height)
 
     def generate_maze(self) -> Grid:
+        """Build a new maze and return its Grid.
+
+        Always starts with a perfect maze. If perfect is False, loops
+        are added and dead ends are opened up afterwards.
+
+        Raises:
+            ValueError: if ENTRY / EXIT are invalid for this grid.
+        """
         self.grid = create_grid(self.width, self.height)
         apply_42_pattern(self.grid)
         self.check_cell("ENTRY", self.entry_point)
-        self.check_cell("EXIT", self.entry_point)
+        self.check_cell("EXIT", self.exit_point)
         if self.entry_point == self.exit_point:
             raise ValueError("ENTRY and EXIT must be different cells!")
 
         self.build_maze()
-        # TODO: ADD LOPPS
-        # TODO: REMOVE DEAD ENDS
+        if not self.perfect:
+            self.add_loops()
+            self.remove_dead_ends()
         return self.grid
-
-    def random_open_walls(self) -> None:
-        """Roughly test the wall-opening mechanism with random picks.
-
-        Placeholder to check that opening walls actually shows up
-        correctly, and that "42" cells correctly stay sealed off.
-        For every cell, there's a 1 in 3 chance of trying to open one
-        random direction.
-        """
-        directions = [Walls.NORTH, Walls.EAST, Walls.SOUTH, Walls.WEST]
-        for row in self.grid.cells:
-            for cell in row:
-                if cell.cell_42:
-                    continue
-                if random.random() < 1 / 3:
-                    direction = random.choice(directions)
-                    neighbor = self.grid.get_neighbor(
-                        cell.position, direction
-                    )
-                    if neighbor is not None and not neighbor.cell_42:
-                        self.grid.open_passage(cell.position, direction)
 
     def check_cell(self, name: str, cell: tuple[int, int]) -> None:
         """Check a cell is inside the grid and not a 42 cell (Entry, Exit)."""
@@ -145,7 +146,6 @@ class MazeGenerator:
                 neighbor.visited = True
                 stack.append(neighbor)
 
-
     # PERFECT = False
     def block_is_open(self, left: int, top: int) -> bool:
         """Check if a 3x3 block has no walls inside it.
@@ -157,17 +157,18 @@ class MazeGenerator:
         if left + 2 >= self.width or top + 2 >= self.height:
             return False
 
-        for y in range(top, top + 3): # 3 cells
+        for y in range(top, top + 3):  # 3 cells
             for x in range(left, left + 3):
                 cell = self.grid.cells[y][x]
                 # Only look at the east and south wall of each cell, so
                 # every wall inside the block is checked exactly once
-                if x < left + 2 and cell.walls & Walls.EAST: # check for wall on E
+                # wall on the east?
+                if x < left + 2 and cell.walls & Walls.EAST:
                     return False
-                if y < top + 2 and cell.walls & Walls.SOUTH: # check for wall on S
+                # wall on the south?
+                if y < top + 2 and cell.walls & Walls.SOUTH:
                     return False
         return True
-
 
     def makes_3x3(self, cell: Cell) -> bool:
         """Check if a cell is part of a 3x3 with no wall inside"""
@@ -178,15 +179,15 @@ class MazeGenerator:
                     return True
         return False
 
-
     def try_open_wall(self, cell: Cell, direction: Walls) -> bool:
-        """Try to open a wall unless it is outside, 42 cell, or would create a 3x3"""
+        """Try to open a wall unless it is outside, 42 cell, or would
+        create a 3x3. Returns True if the wall is now open."""
         neighbor = self.grid.get_neighbor(cell.position, direction)
-        if neighbor == None:
+        if neighbor is None:
             return False
         if cell.cell_42 or neighbor.cell_42:
             return False
-        if not cell.walls & direction: # already open
+        if not cell.walls & direction:  # already open
             return False
 
         self.grid.open_passage(cell.position, direction)
@@ -194,7 +195,6 @@ class MazeGenerator:
             self.grid.close_passage(cell.position, direction)  # undo
             return False
         return True
-
 
     def add_loops(self) -> None:
         """Open extra walls so there is more than one way to go.
@@ -216,7 +216,6 @@ class MazeGenerator:
             if self.try_open_wall(self.grid.cells[y][x], direction):
                 loops_added += 1
 
-
     def count_open_walls(self, cell: Cell) -> int:
         """Count how many walls of a cell are open (0 to 4)."""
         count = 0
@@ -224,7 +223,6 @@ class MazeGenerator:
             if not cell.walls & direction:
                 count += 1
         return count
-        
 
     def remove_dead_ends(self) -> None:
         """Open a wall in every dead end that can be opened.
@@ -245,7 +243,6 @@ class MazeGenerator:
                 for direction in directions:
                     if self.try_open_wall(cell, direction):
                         break
-
 
     # PERFECT = True
     def solve(self) -> str:
@@ -317,6 +314,7 @@ class MazeGenerator:
 
     # hexadecimal encoding - representing decimals in hexa
     def maze_to_hex(self) -> list[str]:
+        """Return the maze as one string of hex digits per row."""
         result = []  # hexa representation in rows
 
         for row in self.grid.cells:
