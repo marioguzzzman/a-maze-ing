@@ -183,6 +183,36 @@ actual breadth-first search over the result. So the backtracker hands us a free 
 mandatory perfect mode, and the same traversal logic generalizes into a real BFS once loops
 exist.
 
+### The solver: breadth-first search
+
+`MazeGenerator.solve()` finds the shortest entry-to-exit path with a **breadth-first search**
+(BFS) — the same cell-by-cell traversal idea as the backtracker, but with one key structural
+swap: a **queue** (first-in-first-out) instead of a **stack** (last-in-first-out). That
+difference is the whole reason it finds the *shortest* path instead of just *a* path.
+
+The walk: start at the entry, push it into the queue, mark it seen. At each step, pop the
+*front* of the queue (the cell that's been waiting longest) and look at its open walls. For
+every neighbour reached through one that hasn't been seen yet, mark it seen, remember which
+cell and which direction (`N`/`E`/`S`/`W`) led to it, and push it onto the *back* of the queue.
+Keep going until the exit comes out of the front of the queue.
+
+Because new cells always go on the back and get processed in the order they went in, the queue
+stays sorted by distance from the entry without anything having to sort it: every cell exactly
+1 step away gets processed before any cell 2 steps away, which gets processed before any cell 3
+steps away, and so on. So the very first time the exit is pulled off the queue, it's guaranteed
+to have arrived via a shortest path — there's no way a longer route could have reached it first,
+since everything closer was already fully explored. (A stack can't give that guarantee: it can
+dive deep down one branch before ever looking at a closer cell on another branch.)
+
+Once the exit is reached, the path itself gets reconstructed backwards: each cell remembers
+only "which cell did I come from, and which direction did that take," so walking from the exit
+back through those breadcrumbs to the entry retraces the whole route, one letter at a time. That
+list comes out in exit-to-entry order, so it gets reversed once at the end to read entry-to-exit
+— the same `N`/`E`/`S`/`W` format the output file expects.
+
+Runtime is O(cells), same bound as the backtracker: every cell is pushed onto the queue and
+popped off it at most once.
+
 ### Alternatives considered
 
 | Algorithm | What it does | Dead-end texture | Extra data structure | Runtime on a grid |
