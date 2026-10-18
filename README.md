@@ -143,23 +143,21 @@ knocks down a few extra walls to open loops back up, while checking that doing s
 the starting maze, so the choice of *which* one matters less for the loopy mode than it does
 for the perfect mode, and for the perfect mode, backtracker is simply the cheapest to get right.
 
-Three things tipped it over Prim's or Kruskal's specifically:
+Three things made this the right structure for the job:
 
-- **One data structure.** A stack and a visited set. No union-find bookkeeping (Kruskal's
-  needs one to avoid accidentally closing a loop), no frontier priority list (Prim's). Less
-  code means less surface area for the kind of logic bug that's easy to introduce and hard to
-  spot in a maze — a coherence error that only shows up three cells later.
-- **Fewer dead-ends by construction.** Backtracker tends toward long, winding corridors instead
-  of lots of short branches, which happens to line up with two requirements at once: "dead-ends
-  should stay rare" in the default mode, and the zero-dead-end bonus, which needs fewer wall
-  removals to reach zero if there weren't many dead-ends to begin with.
-- **Bounded runtime.** Strictly O(width × height), with no risk of the pathological slow case
-  that random-walk approaches (Aldous-Broder, Wilson's) can hit on larger grids — relevant here
-  since `WIDTH`/`HEIGHT` come from the config file, not a fixed size we control.
+- **One data structure.** Just a stack and a visited set — where am I, and what have I already
+  seen. That's genuinely all it takes to carve the whole maze, which keeps the logic easy to
+  reason about and leaves less room for a subtle coherence bug to creep in.
+- **Fewer dead-ends by construction.** It naturally carves long, winding corridors instead of
+  lots of short branches, which helps on two fronts at once: the default mode wants dead-ends to
+  stay rare, and the zero-dead-end bonus needs fewer wall removals to reach zero if there weren't
+  many dead-ends to begin with.
+- **Bounded, predictable runtime.** Strictly proportional to the grid's cell count, with no risk
+  of running unpredictably slower on a larger grid — relevant since `WIDTH`/`HEIGHT` come from
+  the config file, not a fixed size we control.
 
 Reproducibility (the `SEED` key) isn't a deciding factor — every algorithm below is equally
-reproducible once Python's `random` module is seeded once at the start. It's a baseline
-requirement, not a differentiator.
+reproducible once Python's `random` module is seeded once at the start.
 
 ### Reproducibility, and why the tree shape helps with solving too
 
