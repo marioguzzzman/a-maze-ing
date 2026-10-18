@@ -390,8 +390,6 @@ def menu_actions() -> None:
     print("B: Exit point")
 
 
-
-
 def color_chooser(
     color_selection: int,
 ) -> dict[str, tuple[int, int, int, int]]:

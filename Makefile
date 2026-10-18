@@ -5,6 +5,7 @@ MLX_DIR  := .mlx_build/mlx_CLXV
 MLX_REPO := https://github.com/42school/mlx_CLXV.git
 VENV     := .amazeing_env
 VENV_PY  := $(VENV)/bin/python
+LINT_EXCLUDE := .git,__pycache__,$(VENV),.mlx_build,build,dist,info_stuff,*.egg-info
 
 .PHONY: install run debug clean lint lint-strict build
 
@@ -37,12 +38,12 @@ clean:
 	rm -rf .mypy_cache .pytest_cache build dist *.egg-info
 
 lint:
-	flake8 .
+	flake8 --exclude=$(LINT_EXCLUDE) .
 	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports \
 		--disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-	flake8 .
+	flake8 --exclude=$(LINT_EXCLUDE) .
 	mypy . --strict
 
 build:
