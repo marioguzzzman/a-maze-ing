@@ -373,6 +373,7 @@ def show_grid(generator: MazeGenerator, output_file: str) -> None:
     mlx_library.mlx_key_hook(window, on_key_press, None)
     mlx_library.mlx_loop(mlx_connection)
     mlx_library.mlx_destroy_image(mlx_connection, image)
+    mlx_library.mlx_destroy_window(mlx_connection, window)
     mlx_library.mlx_release(mlx_connection)
 
 
