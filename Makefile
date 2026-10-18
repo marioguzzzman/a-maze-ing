@@ -47,5 +47,5 @@ lint-strict:
 	mypy . --strict
 
 build:
-	$(PYTHON) -m build
+	$(VENV_PY) -m build
 	cp dist/mazegen-*.whl .
