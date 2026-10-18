@@ -106,7 +106,7 @@ Socratic tutor and pair-programming partner to guide us in some of the design de
 
 Strip away the walls-and-corridors picture for a second and the maze is a **graph**: every
 cell is a node, and every wall that gets knocked down becomes an edge connecting two nodes. A
-**cycle** — or a "loop" — shows up when two nodes that already have a path
+**cycle**, or a "loop", shows up when two nodes that already have a path
 between them get a second one: walk from A to B one way, then a different way, and a cycle is
 sitting in the middle of that. A **tree** is a connected graph with zero cycles; for N nodes a
 tree always has exactly N-1 edges, no more, no less — pull one out and it falls apart into
@@ -115,17 +115,16 @@ tree that reaches every node of some bigger graph. Put those together and "perfe
 being a vague phrase: it's a spanning tree over the grid. "Exactly one path between any two
 cells" isn't a rule we enforce separately — it's just what a spanning tree already is.
 
-### The algorithm itself
+### Recursive Backtracker Algorithm
 
-We generate mazes with a **recursive backtracker** — randomized depth-first search over the
+We generate mazes with a **recursive backtracker**, randomized depth-first search over the
 grid, run with an explicit stack rather than actual Python recursion (a 100x100 grid would blow
 past the recursion limit otherwise).
 
-A stack is a last-in-first-out pile — like a stack of plates, you only ever add or remove from
-the top. The walk: start at any cell, mark it visited, push it onto the stack. At each step,
+It works like a stack is a last-in-first-out pile. The walk starts at any cell, marks it as visited, pushes it onto the stack. At each step,
 check the current cell's unvisited neighbours. If there's at least one, pick one at random,
 knock down the wall between the two cells, mark the new one visited, and push it on top of the
-stack — one step forward along the trail. If there are none left (a dead end), pop the stack
+stack, one step forward along the trail. If there are none left (a dead end), pop the stack
 instead: discard whatever's on top and step back to the cell underneath it. The stack is
 exactly the trail walked so far, so popping it is retracing the last move, cell by cell, until
 landing somewhere with unexplored territory left to push into. Keep alternating push and pop
@@ -133,7 +132,7 @@ until the stack runs empty, which only happens once every cell has been visited.
 standing at that point is, by construction, a spanning tree — zero cycles, one route between
 any two cells, a valid `PERFECT=True` maze with no extra work.
 
-### Why this one
+### Why this structure
 
 Our subject needs two different boards out of the same generator: a perfect maze
 (`PERFECT=True`) and a Pac-Man-style board with loops, open corners, and a mostly dead-end-free
