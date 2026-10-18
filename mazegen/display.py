@@ -37,15 +37,15 @@ SODA = {
 }
 CHERRY_MELON = {
     "background": (234, 222, 252, 255),
-    "wall": (109, 77, 255, 255),
+    "wall": (36, 40, 1, 255),
     "pattern": (53, 89, 38, 255),
-    "path": (36, 40, 1, 255),
+    "path": (109, 77, 255, 255),
 }
 SOVIET = {
     "background": (192, 214, 232, 255),
-    "wall": (141, 147, 146, 255),
-    "pattern": (28, 40, 161, 255),
-    "path": (0, 0, 0, 255),
+    "wall": (0, 0, 0, 255),
+    "pattern": (141, 147, 146, 255),
+    "path": (28, 40, 161, 255),
 }
 PALETTES = [PUMPKIN, SODA, CHERRY_MELON, SOVIET]
 
@@ -384,6 +384,12 @@ def menu_actions() -> None:
     print("3. Rotate the wall colours")
     print("4. Quit")
     print("Choice? (1-4):")
+    print("")
+    print("=== Legend ===")
+    print("A: Entry point")
+    print("B: Exit point")
+
+
 
 
 def color_chooser(
