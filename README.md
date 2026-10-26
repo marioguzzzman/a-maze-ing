@@ -12,8 +12,16 @@ There are two modes:
 - `PERFECT=False`: the maze has loops, so there is more than one path.
 
 In the window you can generate a new maze, show or hide the shortest path, and change the wall colors.
-a
+
 The code that makes the maze is in a separate package called `mazegen`, so it can be reused in other projects.
+
+### Screenshots
+
+A `PERFECT=True` maze (single path, no loops) and a `PERFECT=False` playable board (loops, no
+dead-ends), each with the shortest path shown and a different wall-colour palette:
+
+<img src="images/maze_perfect.png" width="420" alt="Perfect maze with the 42 pattern and the shortest path shown"> <img src="images/maze_playable.png" width="420" alt="Playable (PERFECT=False) maze with the 42 pattern and the shortest path shown">
+
 
 ## Instructions
 
