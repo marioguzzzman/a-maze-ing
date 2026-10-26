@@ -20,7 +20,12 @@ The code that makes the maze is in a separate package called `mazegen`, so it ca
 A `PERFECT=True` maze (single path, no loops) and a `PERFECT=False` playable board (loops, no
 dead-ends), each with the shortest path shown and a different wall-colour palette:
 
-<img src="images/maze_perfect.png" width="420" alt="Perfect maze with the 42 pattern and the shortest path shown"> <img src="images/maze_playable.png" width="420" alt="Playable (PERFECT=False) maze with the 42 pattern and the shortest path shown">
+<table>
+<tr>
+<td><img src="images/maze_perfect.png" width="400" alt="Perfect maze with the 42 pattern and the shortest path shown"><br><sub><code>PERFECT=True</code></sub></td>
+<td><img src="images/maze_playable.png" width="400" alt="Playable (PERFECT=False) maze with the 42 pattern and the shortest path shown"><br><sub><code>PERFECT=False</code></sub></td>
+</tr>
+</table>
 
 
 ## Instructions
