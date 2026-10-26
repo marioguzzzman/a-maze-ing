@@ -15,7 +15,7 @@ In the window you can generate a new maze, show or hide the shortest path, and c
 
 The code that makes the maze is in a separate package called `mazegen`, so it can be reused in other projects.
 
-### Screenshots
+### sample Images
 
 A `PERFECT=True` maze (single path, no loops) and a `PERFECT=False` playable board (loops, no
 dead-ends), each with the shortest path shown and a different wall-colour palette:
