@@ -9,8 +9,8 @@ writes the hex output file, and runs the interactive terminal display.
 
 import sys
 from typing import cast
-from config import Config, parse_config
-from errors import ConfigError
+from app.config import Config, parse_config
+from app.errors import ConfigError
 from mazegen.generator import MazeGenerator
 from mazegen.display import build_visual_maze
 

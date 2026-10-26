@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "mazegen"
 version = "1.0.0"
 description = "Reusable maze generator from the 42 A-Maze-ing project."
+readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE.md"]
@@ -13,6 +14,12 @@ authors = [
     { name = "maguzman" },
     { name = "dbali" },
 ]
+
+[project.urls]
+Repository = "https://github.com/marioguzzzman/a-maze-ing"
+
+[project.optional-dependencies]
+dev = ["flake8", "mypy", "build"]
 
 [tool.setuptools]
 packages = ["mazegen"]

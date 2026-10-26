@@ -5,7 +5,7 @@
 Open File, parse the config file and assign to variables
 """
 
-from errors import ConfigError
+from app.errors import ConfigError
 
 ConfigValue = int | tuple[int, int] | str | bool
 Config = dict[str, ConfigValue]
